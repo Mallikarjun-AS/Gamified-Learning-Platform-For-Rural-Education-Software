@@ -1,0 +1,1272 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+/* ══════════════════════════════════
+   TEACHER DASHBOARD
+══════════════════════════════════ */
+
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(24px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+@keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:0.4; transform:scale(0.65); }
+}
+@keyframes shimmerBar {
+    from { background-position: -200% center; }
+    to   { background-position:  200% center; }
+}
+@keyframes countUp {
+    from { opacity:0; transform:scale(0.5); }
+    to   { opacity:1; transform:scale(1); }
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+/* ── HERO ── */
+.teacher-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    padding: 1.8rem 2rem;
+    background: rgba(15,8,48,0.8);
+    border: 1px solid rgba(255,215,0,0.15);
+    border-radius: 24px;
+    backdrop-filter: blur(18px);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.1s both;
+}
+
+.teacher-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg,
+        var(--vivid-gold), var(--bright-pink),
+        var(--electric-blue), var(--emerald));
+    background-size: 200%;
+    animation: shimmerBar 3s linear infinite;
+}
+
+.teacher-hero::after {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 250px; height: 250px;
+    background: radial-gradient(circle, rgba(255,215,0,0.06) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.teacher-avatar {
+    width: 64px; height: 64px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(255,45,155,0.15), rgba(139,0,232,0.1));
+    border: 2px solid rgba(255,45,155,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    box-shadow: 0 0 24px rgba(255,45,155,0.2);
+    flex-shrink: 0;
+}
+
+.teacher-hero-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 3px;
+}
+
+.teacher-hero-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff 0%, var(--bright-pink) 50%, var(--vivid-gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+}
+
+.teacher-hero-sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 3px;
+}
+
+.teacher-hero-right {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.hero-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 0.7rem 1.1rem;
+    text-align: center;
+    min-width: 80px;
+}
+
+.hero-chip-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    line-height: 1;
+    animation: countUp 0.8s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+.hero-chip-lbl {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 3px;
+}
+
+/* ── ANALYTICS GRID ── */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.2s both;
+}
+
+.analytics-card {
+    background: rgba(15,8,48,0.7);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 1.2rem 1rem;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+
+.analytics-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--ac-col);
+    box-shadow: 0 14px 36px rgba(0,0,0,0.3), 0 0 22px var(--ac-glow);
+}
+
+.analytics-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--ac-accent);
+}
+
+.ac-icon { font-size: 1.7rem; margin-bottom: 0.4rem; filter: drop-shadow(0 0 8px var(--ac-glow)); }
+.ac-num  { font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:900; color:var(--ac-col); line-height:1; filter:drop-shadow(0 0 6px var(--ac-glow)); animation: countUp 0.8s both; }
+.ac-lbl  { font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-top:4px; }
+
+.ac-gold  { --ac-col:#FFD700; --ac-glow:rgba(255,215,0,0.3);   --ac-accent:linear-gradient(90deg,#FFD700,#FF8C00); }
+.ac-pink  { --ac-col:#FF2D9B; --ac-glow:rgba(255,45,155,0.25); --ac-accent:linear-gradient(90deg,#FF2D9B,#8B00E8); }
+.ac-blue  { --ac-col:#00C3FF; --ac-glow:rgba(0,195,255,0.25);  --ac-accent:linear-gradient(90deg,#00C3FF,#0057FF); }
+.ac-green { --ac-col:#00F5A0; --ac-glow:rgba(0,245,160,0.25);  --ac-accent:linear-gradient(90deg,#00F5A0,#00C3FF); }
+.ac-saf   { --ac-col:#FF8C00; --ac-glow:rgba(255,140,0,0.25);  --ac-accent:linear-gradient(90deg,#FF8C00,#FFD700); }
+
+/* ── CHARTS ── */
+.charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.3s both;
+}
+
+@media (max-width: 680px) { .charts-row { grid-template-columns: 1fr; } }
+
+.chart-card {
+    background: rgba(15,8,48,0.7);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    padding: 1.4rem;
+    backdrop-filter: blur(14px);
+    position: relative;
+    overflow: hidden;
+}
+
+.chart-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: var(--chart-accent, linear-gradient(90deg,#FFD700,#FF8C00));
+}
+
+.chart-title {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.chart-title span { font-size: 0.95rem; }
+canvas.chart { width: 100% !important; display: block; }
+
+/* ── SECTION HEADER ── */
+.section-hdr {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.2rem;
+}
+.section-hdr-line { flex:1; height:1px; background:rgba(255,255,255,0.05); }
+.section-hdr-lbl  { font-size:0.68rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); white-space:nowrap; }
+
+/* ── PODIUM ── */
+.podium-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.35s both;
+}
+
+.podium-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.podium-avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    border: 2px solid var(--pod-col);
+    box-shadow: 0 0 16px var(--pod-glow);
+    background: var(--pod-bg);
+    transition: transform 0.25s;
+}
+
+.podium-avatar:hover { transform: scale(1.1); }
+
+.podium-name {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.podium-xp { font-size: 0.68rem; color: var(--pod-col); font-weight: 600; }
+
+.podium-block {
+    width: 80px;
+    border-radius: 8px 8px 0 0;
+    background: var(--pod-block);
+    border: 1px solid var(--pod-col);
+    box-shadow: 0 0 20px var(--pod-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: var(--pod-col);
+    font-family: 'Cormorant Garamond', serif;
+}
+
+.pod-1 { --pod-col:#FFD700; --pod-glow:rgba(255,215,0,0.3);    --pod-bg:rgba(255,215,0,0.12);   --pod-block:rgba(255,215,0,0.08); }
+.pod-2 { --pod-col:#C0C0C0; --pod-glow:rgba(192,192,192,0.2);  --pod-bg:rgba(192,192,192,0.08); --pod-block:rgba(192,192,192,0.05); }
+.pod-3 { --pod-col:#CD7F32; --pod-glow:rgba(205,127,50,0.2);   --pod-bg:rgba(205,127,50,0.08);  --pod-block:rgba(205,127,50,0.05); }
+
+/* ── STUDENTS TABLE ── */
+.table-wrapper {
+    background: rgba(15,8,48,0.7);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    backdrop-filter: blur(14px);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.45s both;
+}
+
+.table-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.1rem 1.4rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-wrap: wrap;
+}
+
+.table-toolbar-title {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.table-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 99px;
+    padding: 0.4rem 1rem;
+    transition: border-color 0.2s;
+}
+
+.table-search:focus-within { border-color: rgba(255,215,0,0.35); }
+
+.table-search input {
+    background: none;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    width: 160px;
+}
+
+.table-search input::placeholder { color: var(--muted); }
+
+.students-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.83rem;
+}
+
+.students-table thead tr { border-bottom: 1px solid rgba(255,255,255,0.07); }
+
+.students-table th {
+    padding: 0.75rem 1.2rem;
+    text-align: left;
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.students-table td {
+    padding: 0.75rem 1.2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: middle;
+}
+
+.students-table tbody tr { transition: background 0.2s; }
+.students-table tbody tr:hover { background: rgba(255,215,0,0.04); }
+.students-table tbody tr:last-child td { border-bottom: none; }
+
+.student-cell { display: flex; align-items: center; gap: 10px; }
+
+.student-emoji {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.student-name-col { font-weight: 600; color: #fff; }
+
+.xp-cell { min-width: 120px; }
+
+.xp-mini-bar {
+    height: 5px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.xp-mini-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--vivid-gold), var(--saffron));
+    width: 0%;
+    transition: width 1s cubic-bezier(0.16,1,0.3,1);
+}
+
+.level-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.22rem 0.65rem;
+    border-radius: 99px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgba(255,45,155,0.1);
+    border: 1px solid rgba(255,45,155,0.25);
+    color: var(--bright-pink);
+    white-space: nowrap;
+}
+
+.grade-pill {
+    display: inline-flex;
+    padding: 0.2rem 0.6rem;
+    border-radius: 99px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgba(0,195,255,0.1);
+    border: 1px solid rgba(0,195,255,0.25);
+    color: var(--electric-blue);
+}
+
+.rank-badge { font-family:'Cormorant Garamond',serif; font-size:1rem; font-weight:900; color:var(--muted); }
+.rank-badge.r1 { color:#FFD700; filter:drop-shadow(0 0 6px rgba(255,215,0,0.5)); }
+.rank-badge.r2 { color:#C0C0C0; }
+.rank-badge.r3 { color:#CD7F32; }
+
+.subject-scores { display: flex; gap: 5px; flex-wrap: wrap; }
+
+.score-chip {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.18rem 0.5rem;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #ccc;
+    white-space: nowrap;
+}
+
+.score-chip.hi  { background:rgba(0,245,160,0.1);  border-color:rgba(0,245,160,0.25);  color:#00F5A0; }
+.score-chip.mid { background:rgba(255,215,0,0.08);  border-color:rgba(255,215,0,0.2);   color:#FFD700; }
+.score-chip.low { background:rgba(255,45,155,0.08); border-color:rgba(255,45,155,0.2);  color:#FF2D9B; }
+
+/* Email Button Styles */
+.email-progress-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #00C3FF, #0099CC);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 0.9rem;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    font-family: 'Outfit', sans-serif;
+}
+
+.email-progress-btn i {
+    font-size: 0.8rem;
+}
+
+.email-progress-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 195, 255, 0.3);
+    background: linear-gradient(135deg, #33D6FF, #00B0E0);
+}
+
+.email-progress-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.email-progress-btn.sending {
+    background: linear-gradient(135deg, #888, #666);
+    cursor: wait;
+}
+
+.fa-spin {
+    animation: spin 1s linear infinite;
+}
+
+.no-email-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.3rem 0.7rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    font-size: 0.65rem;
+    color: var(--muted);
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.no-email-badge i {
+    font-size: 0.7rem;
+    color: #FF2D9B;
+}
+
+/* Parent Email Column */
+.parent-email-col {
+    max-width: 180px;
+    font-size: 0.75rem;
+    color: #ccc;
+}
+
+.parent-email-col i {
+    color: #00C3FF;
+    margin-right: 4px;
+    font-size: 0.7rem;
+}
+
+.parent-email-col .no-email {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 0.65rem;
+}
+
+/* Notification Styles for Email Status */
+.email-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    background: var(--surface);
+    border-left: 4px solid;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.email-notification.success {
+    border-left-color: #00F5A0;
+}
+
+.email-notification.error {
+    border-left-color: #FF2D9B;
+}
+
+.email-notification i {
+    font-size: 1.2rem;
+}
+
+.email-notification.success i {
+    color: #00F5A0;
+}
+
+.email-notification.error i {
+    color: #FF2D9B;
+}
+
+.email-notification .message {
+    flex: 1;
+    font-size: 0.85rem;
+    color: #fff;
+}
+
+.email-notification .close {
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 0.2s;
+}
+
+.email-notification .close:hover {
+    color: #fff;
+}
+
+/* Tooltip */
+.email-tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.email-tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: var(--surface);
+    color: #fff;
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,215,0,0.2);
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.7rem;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}
+
+.email-tooltip .tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--surface) transparent transparent transparent;
+}
+
+.email-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+.table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.4rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.75rem;
+    color: var(--muted);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.table-footer-count strong { color: #fff; }
+
+/* ── LOGOUT ── */
+.logout-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.55s both;
+}
+
+.btn-logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,45,155,0.08);
+    border: 1px solid rgba(255,45,155,0.25);
+    color: var(--bright-pink);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.65rem 1.4rem;
+    border-radius: 99px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.25s, box-shadow 0.25s, transform 0.2s;
+}
+
+.btn-logout:hover {
+    background: rgba(255,45,155,0.15);
+    box-shadow: 0 6px 22px rgba(255,45,155,0.2);
+    transform: translateY(-2px);
+}
+
+/* Email Stats Summary */
+.email-stats {
+    background: rgba(15,8,48,0.5);
+    border: 1px solid rgba(0,195,255,0.15);
+    border-radius: 12px;
+    padding: 0.8rem 1.2rem;
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+}
+
+.email-stats-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+}
+
+.email-stats-item i {
+    color: #00C3FF;
+    font-size: 1rem;
+}
+
+.email-stats-item span {
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.email-stats-item strong {
+    color: #00F5A0;
+    margin-left: 4px;
+    font-weight: 700;
+}
+</style>
+
+<!-- ══════════════════════════════════
+     HERO
+══════════════════════════════════ -->
+<div class="teacher-hero">
+    <div style="display:flex;align-items:center;gap:1.1rem;flex:1;flex-wrap:wrap;">
+        <div class="teacher-avatar">👨‍🏫</div>
+        <div>
+            <div class="teacher-hero-label" data-translate="teacher_command_centre">Teacher Command Centre</div>
+            <div class="teacher-hero-name">{{ user.name }}</div>
+            <div class="teacher-hero-sub" data-translate="teacher_subtitle">STEM Faculty &nbsp;·&nbsp; ShikshaSetu Academy</div>
+        </div>
+    </div>
+    <div class="teacher-hero-right">
+        <div class="hero-chip">
+            <div class="hero-chip-num" style="color:var(--vivid-gold);">{{ total_students }}</div>
+            <div class="hero-chip-lbl" data-translate="students">Students</div>
+        </div>
+        <div class="hero-chip">
+            <div class="hero-chip-num" style="color:var(--emerald);">{{ avg_xp }}</div>
+            <div class="hero-chip-lbl" data-translate="avg_xp">Avg XP</div>
+        </div>
+        <div class="hero-chip">
+            <div class="hero-chip-num" style="color:var(--electric-blue);">{{ games_today }}</div>
+            <div class="hero-chip-lbl" data-translate="today">Today</div>
+        </div>
+    </div>
+</div>
+
+<!-- Logout -->
+<div class="logout-row">
+    <a href="/logout" class="btn-logout" data-translate="logout">🚪 Logout</a>
+</div>
+
+
+
+<!-- ══════════════════════════════════
+     ANALYTICS CARDS
+══════════════════════════════════ -->
+<div class="analytics-grid">
+    <div class="analytics-card ac-gold">
+        <div class="ac-icon">👥</div>
+        <div class="ac-num">{{ total_students }}</div>
+        <div class="ac-lbl" data-translate="total_students">Total Students</div>
+    </div>
+    <div class="analytics-card ac-blue">
+        <div class="ac-icon">⚡</div>
+        <div class="ac-num">{{ total_xp }}</div>
+        <div class="ac-lbl" data-translate="total_xp_earned">Total XP Earned</div>
+    </div>
+    <div class="analytics-card ac-green">
+        <div class="ac-icon">📈</div>
+        <div class="ac-num">{{ avg_xp }}</div>
+        <div class="ac-lbl" data-translate="average_xp">Average XP</div>
+    </div>
+    <div class="analytics-card ac-pink">
+        <div class="ac-icon">🏆</div>
+        <div class="ac-num">{{ highest_level }}</div>
+        <div class="ac-lbl" data-translate="highest_level">Highest Level</div>
+    </div>
+    <div class="analytics-card ac-saf">
+        <div class="ac-icon">🔥</div>
+        <div class="ac-num">{{ active_count }}</div>
+        <div class="ac-lbl" data-translate="active_learners">Active Learners</div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     CHARTS
+══════════════════════════════════ -->
+<div class="charts-row">
+    <div class="chart-card" style="--chart-accent:linear-gradient(90deg,#FFD700,#FF8C00);">
+        <div class="chart-title"><span>📊</span> <span data-translate="xp_by_grade">XP by Grade</span></div>
+        <canvas class="chart" id="gradeChart" height="200"></canvas>
+    </div>
+    <div class="chart-card" style="--chart-accent:linear-gradient(90deg,#FF2D9B,#8B00E8);">
+        <div class="chart-title"><span>🍩</span> <span data-translate="level_distribution">Level Distribution</span></div>
+        <canvas class="chart" id="levelChart" height="200"></canvas>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     TOP 3 PODIUM
+══════════════════════════════════ -->
+{% if students %}
+{% set sorted_students = students | sort(attribute='xp', reverse=True) %}
+
+<div class="section-hdr" style="animation:fadeUp 0.6s 0.4s both;">
+    <div class="section-hdr-line"></div>
+    <span class="section-hdr-lbl" data-translate="hall_of_champions">✦ Hall of Champions ✦</span>
+    <div class="section-hdr-line"></div>
+</div>
+
+<div class="podium-row">
+    <!-- 2nd -->
+    {% if sorted_students | length >= 2 %}
+    {% set s2 = sorted_students[1] %}
+    <div class="podium-item pod-2">
+        <div class="podium-avatar pod-2">🐯</div>
+        <div class="podium-name">{{ s2.name }}</div>
+        <div class="podium-xp">{{ s2.xp }} <span data-translate="xp">XP</span></div>
+        <div class="podium-block" style="height:60px;">🥈</div>
+    </div>
+    {% endif %}
+
+    <!-- 1st -->
+    {% set s1 = sorted_students[0] %}
+    <div class="podium-item pod-1">
+        <div class="podium-avatar pod-1" style="width:62px;height:62px;font-size:1.8rem;">🦁</div>
+        <div class="podium-name" style="font-size:0.82rem;">{{ s1.name }}</div>
+        <div class="podium-xp" style="font-size:0.75rem;">{{ s1.xp }} <span data-translate="xp">XP</span></div>
+        <div class="podium-block" style="height:82px;font-size:1.5rem;">👑</div>
+    </div>
+
+    <!-- 3rd -->
+    {% if sorted_students | length >= 3 %}
+    {% set s3 = sorted_students[2] %}
+    <div class="podium-item pod-3">
+        <div class="podium-avatar pod-3">🦊</div>
+        <div class="podium-name">{{ s3.name }}</div>
+        <div class="podium-xp">{{ s3.xp }} <span data-translate="xp">XP</span></div>
+        <div class="podium-block" style="height:46px;">🥉</div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- ══════════════════════════════════
+     STUDENTS TABLE
+══════════════════════════════════ -->
+<div class="section-hdr" style="animation:fadeUp 0.6s 0.45s both;">
+    <div class="section-hdr-line"></div>
+    <span class="section-hdr-lbl" data-translate="all_students">✦ All Students ✦</span>
+    <div class="section-hdr-line"></div>
+</div>
+
+<div class="table-wrapper">
+    <div class="table-toolbar">
+        <div class="table-toolbar-title">
+            <span>👥</span> <span data-translate="student_roster">Student Roster</span>
+            &nbsp;
+            <span style="background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.25);color:var(--vivid-gold);padding:0.18rem 0.6rem;border-radius:99px;font-size:0.65rem;">
+                {{ total_students }} <span data-translate="total">total</span>
+            </span>
+        </div>
+        <div class="table-search">
+            <span style="color:var(--muted);font-size:0.85rem;">🔍</span>
+            <input type="text" id="studentSearch" placeholder="Search students..." oninput="filterTable(this.value)" data-translate-placeholder="search_students">
+        </div>
+    </div>
+
+    <div style="overflow-x:auto;">
+        <table class="students-table" id="studentsTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th data-translate="student">Student</th>
+                    <th data-translate="grade">Grade</th>
+                    <th data-translate="parent_email">Parent Email</th>
+                    <th data-translate="xp">XP</th>
+                    <th data-translate="level">Level</th>
+                    <th data-translate="actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="studentsBody">
+                {% if students %}
+                {% set sorted_all = students | sort(attribute='xp', reverse=True) %}
+                {% set emojis = ['🦁','🐯','🦊','🐺','🦅','🐉','🦋','🌟','⚡','🔥','💎','🚀','🎯','🌈','🏆'] %}
+                {% set max_xp = sorted_all[0].xp if sorted_all[0].xp > 0 else 1 %}
+
+                {% for student in sorted_all %}
+                {% set rank = loop.index %}
+                {% set raw_pct = (student.xp * 100) // max_xp %}
+                {% set xp_pct = raw_pct if raw_pct < 100 else 100 %}
+                {% set has_parent_email = student.parent_email and student.parent_email|length > 0 %}
+
+                <tr class="student-row" data-name="{{ student.name | lower }}">
+                    <td>
+                        <span class="rank-badge {% if rank == 1 %}r1{% elif rank == 2 %}r2{% elif rank == 3 %}r3{% endif %}">
+                            {% if rank == 1 %}👑{% elif rank == 2 %}🥈{% elif rank == 3 %}🥉{% else %}{{ rank }}{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="student-cell">
+                            <div class="student-emoji">{{ emojis[loop.index0 % (emojis | length)] }}</div>
+                            <div class="student-name-col">{{ student.name }}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="grade-pill">
+                            {% if student.grade %}<span data-translate="grade_abbr">Gr.</span> {{ student.grade }}{% else %}—{% endif %}
+                        </span>
+                    </td>
+                    <td class="parent-email-col">
+                        {% if has_parent_email %}
+                            <i class="fas fa-envelope" title="Parent email registered"></i>
+                            <span class="email-tooltip">
+                                {{ student.parent_email[:15] + '...' if student.parent_email|length > 18 else student.parent_email }}
+                                <span class="tooltip-text">{{ student.parent_email }}</span>
+                            </span>
+                        {% else %}
+                            <span class="no-email"><i class="fas fa-envelope-slash"></i> <span data-translate="not_provided">Not provided</span></span>
+                        {% endif %}
+                    </td>
+                    <td class="xp-cell">
+                        <div style="font-size:0.82rem;font-weight:700;color:var(--vivid-gold);">{{ student.xp }}</div>
+                        <div class="xp-mini-bar">
+                            <div class="xp-mini-fill" data-width="{{ xp_pct }}" style="width:0%;"></div>
+                        </div>
+                    </td>
+                    <td><span class="level-pill"><span data-translate="level_abbr">Lvl</span> {{ student.level }}</span></td>
+                    <!-- Replace the subject scores section in teacher_dashboard.html -->
+
+                    <td>
+                        {% if has_parent_email %}
+                        <div class="email-tooltip">
+                            <button class="email-progress-btn" onclick="sendProgressEmail({{ student.id }}, '{{ student.name }}')" 
+                                    title="Send progress report to {{ student.parent_email }}">
+                                <i class="fas fa-envelope"></i>
+                                <span data-translate="send_report">Send Report</span>
+                            </button>
+                            <span class="tooltip-text">{{ student.parent_email }}</span>
+                        </div>
+                        {% else %}
+                        <span class="no-email-badge">
+                            <i class="fas fa-envelope-slash"></i>
+                            <span data-translate="no_parent_email">No parent email</span>
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+
+                {% else %}
+                <tr>
+                    <td colspan="8" style="text-align:center;color:var(--muted);padding:2rem;" data-translate="no_students">
+                        No students enrolled yet 🎓
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        <span class="table-footer-count">
+            <span data-translate="showing">Showing</span> <strong id="visibleCount">{{ total_students }}</strong> <span data-translate="of">of</span> <strong>{{ total_students }}</strong> <span data-translate="students">students</span>
+        </span>
+        <span data-translate="sorted_by_xp">Sorted by XP · Descending</span>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     SCRIPT
+══════════════════════════════════ -->
+<script>
+const STUDENTS = {{ students_json | safe }};
+
+const COLORS = [
+    '#FFD700','#FF2D9B','#00C3FF',
+    '#00F5A0','#FF8C00','#8B00E8','#7CFC00'
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.xp-mini-fill').forEach((el, i) => {
+        const w = el.dataset.width || 0;
+        setTimeout(() => { el.style.width = w + '%'; }, 300 + i * 60);
+    });
+    drawGradeChart();
+    drawLevelChart();
+    
+    // Add translation support for dynamic content
+    if (window.translationManager && window.translationManager.currentLang !== 'en') {
+        // Translate placeholder text
+        const searchInput = document.getElementById('studentSearch');
+        if (searchInput) {
+            const placeholder = searchInput.getAttribute('data-translate-placeholder');
+            if (placeholder) {
+                window.translationManager.translateGameTexts([placeholder], window.translationManager.currentLang)
+                    .then(translations => {
+                        if (translations[0]) {
+                            searchInput.placeholder = translations[0];
+                        }
+                    });
+            }
+        }
+    }
+});
+
+// Function to show custom notifications
+function showNotification(message, type = 'success') {
+    if (window.notificationSystem) {
+        if (type === 'success') {
+            notificationSystem.success(message);
+        } else {
+            notificationSystem.error(message);
+        }
+    } else {
+        // Fallback if notification system not available
+        alert(message);
+    }
+}
+
+// Function to send progress email
+function sendProgressEmail(studentId, studentName) {
+    if (!confirm(`📧 Send progress report for ${studentName} to their parent's email?`)) {
+        return;
+    }
+    
+    // Get the button that was clicked
+    const btn = event.target.closest('button');
+    const originalHTML = btn.innerHTML;
+    
+    // Disable button and show loading state
+    btn.disabled = true;
+    btn.classList.add('sending');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    
+    fetch(`/send-progress-email/${studentId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw err; });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            
+            // Optional: Add a small animation to the button
+            btn.style.background = 'linear-gradient(135deg, #00F5A0, #00C3FF)';
+            setTimeout(() => {
+                btn.style.background = '';
+            }, 1000);
+        } else {
+            showNotification(data.message || 'Failed to send email', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification(error.message || 'Failed to send email. Please try again.', 'error');
+    })
+    .finally(() => {
+        // Restore button state
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+            btn.classList.remove('sending');
+        }, 1000);
+    });
+}
+
+// Function to filter table
+function filterTable(val) {
+    val = val.toLowerCase().trim();
+    let visible = 0;
+    document.querySelectorAll('.student-row').forEach(row => {
+        const name = row.dataset.name || '';
+        const show = !val || name.includes(val);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    const el = document.getElementById('visibleCount');
+    if (el) el.textContent = visible;
+}
+
+// Chart drawing functions
+function drawGradeChart() {
+    const canvas = document.getElementById('gradeChart');
+    if (!canvas || STUDENTS.length === 0) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const W   = canvas.offsetWidth;
+    const H   = 200;
+    canvas.width        = W * dpr;
+    canvas.height       = H * dpr;
+    canvas.style.height = H + 'px';
+    ctx.scale(dpr, dpr);
+
+    const gradeMap = {};
+    STUDENTS.forEach(s => {
+        const g = s.grade !== null ? s.grade : 'N/A';
+        gradeMap[g] = (gradeMap[g] || 0) + s.xp;
+    });
+    const grades = Object.keys(gradeMap).sort();
+    const vals   = grades.map(g => gradeMap[g]);
+    const maxVal = Math.max(...vals, 1);
+
+    const padL = 40, padR = 16, padT = 20, padB = 36;
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+    const barW  = Math.min(44, (plotW / grades.length) * 0.55);
+    const gap   = plotW / grades.length;
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth   = 1;
+    for (let i = 1; i <= 4; i++) {
+        const y = padT + plotH - (plotH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(W - padR, y);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.25)';
+        ctx.font      = '9px Outfit';
+        ctx.textAlign = 'right';
+        ctx.fillText(Math.round(maxVal / 4 * i), padL - 5, y + 3);
+    }
+
+    grades.forEach((grade, i) => {
+        const x    = padL + gap * i + gap / 2 - barW / 2;
+        const barH = (vals[i] / maxVal) * plotH;
+        const y    = padT + plotH - barH;
+        const col  = COLORS[i % COLORS.length];
+        ctx.save();
+        ctx.shadowBlur  = 18;
+        ctx.shadowColor = col;
+        const gr = ctx.createLinearGradient(x, y, x, padT + plotH);
+        gr.addColorStop(0, col);
+        gr.addColorStop(1, col + '33');
+        ctx.fillStyle = gr;
+        ctx.beginPath();
+        ctx.roundRect(x, y, barW, barH, [6, 6, 0, 0]);
+        ctx.fill();
+        ctx.restore();
+        ctx.fillStyle = col;
+        ctx.font      = 'bold 10px Outfit';
+        ctx.textAlign = 'center';
+        ctx.fillText(vals[i], x + barW / 2, y - 5);
+        ctx.fillStyle = 'rgba(255,255,255,0.45)';
+        ctx.font      = '10px Outfit';
+        ctx.fillText('Gr.' + grade, x + barW / 2, padT + plotH + 14);
+    });
+}
+
+function drawLevelChart() {
+    const canvas = document.getElementById('levelChart');
+    if (!canvas || STUDENTS.length === 0) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const W   = canvas.offsetWidth;
+    const H   = 200;
+    canvas.width        = W * dpr;
+    canvas.height       = H * dpr;
+    canvas.style.height = H + 'px';
+    ctx.scale(dpr, dpr);
+
+    const lvlMap = {};
+    STUDENTS.forEach(s => { lvlMap[s.level] = (lvlMap[s.level] || 0) + 1; });
+    const levels = Object.keys(lvlMap).sort((a, b) => a - b);
+    const counts = levels.map(l => lvlMap[l]);
+    const total  = counts.reduce((a, b) => a + b, 0) || 1;
+
+    const cx     = W * 0.38;
+    const cy     = H / 2;
+    const outerR = Math.min(cx, cy) - 14;
+    const innerR = outerR * 0.56;
+    let   angle  = -Math.PI / 2;
+
+    counts.forEach((c, i) => {
+        const slice = (c / total) * Math.PI * 2;
+        const col   = COLORS[i % COLORS.length];
+        ctx.save();
+        ctx.shadowBlur  = 12;
+        ctx.shadowColor = col;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, outerR, angle, angle + slice);
+        ctx.closePath();
+        ctx.fillStyle   = col;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(6,3,26,0.9)';
+        ctx.lineWidth   = 2.5;
+        ctx.stroke();
+        ctx.restore();
+        angle += slice;
+    });
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+    ctx.fillStyle = '#0a0618';
+    ctx.fill();
+    ctx.font         = 'bold 22px "Cormorant Garamond", serif';
+    ctx.fillStyle    = '#FFD700';
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(STUDENTS.length, cx, cy - 6);
+    ctx.font      = '10px Outfit';
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillText('students', cx, cy + 12);
+    ctx.restore();
+
+    const legX      = W * 0.68;
+    const legStartY = cy - (levels.length * 18) / 2;
+    levels.forEach((lvl, i) => {
+        const ly  = legStartY + i * 20;
+        const col = COLORS[i % COLORS.length];
+        ctx.save();
+        ctx.fillStyle   = col;
+        ctx.shadowBlur  = 6;
+        ctx.shadowColor = col;
+        ctx.beginPath();
+        ctx.arc(legX, ly + 5, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        ctx.font      = '10px Outfit';
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.textAlign = 'left';
+        ctx.fillText('Lv ' + lvl + '  (' + counts[i] + ')', legX + 10, ly + 9);
+    });
+}
+
+window.addEventListener('resize', () => {
+    drawGradeChart();
+    drawLevelChart();
+});
+
+// Add roundRect utility if not available
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+        if (w < 2 * r) r = w / 2;
+        if (h < 2 * r) r = h / 2;
+        this.moveTo(x + r, y);
+        this.lineTo(x + w - r, y);
+        this.quadraticCurveTo(x + w, y, x + w, y + r);
+        this.lineTo(x + w, y + h - r);
+        this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        this.lineTo(x + r, y + h);
+        this.quadraticCurveTo(x, y + h, x, y + h - r);
+        this.lineTo(x, y + r);
+        this.quadraticCurveTo(x, y, x + r, y);
+        return this;
+    };
+}
+</script>
+
+{% endblock %}

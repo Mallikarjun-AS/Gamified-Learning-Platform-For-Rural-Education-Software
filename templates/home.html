@@ -1,0 +1,642 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    /* ── HERO ── */
+    .hero {
+        text-align: center;
+        padding: 4rem 1rem 3rem;
+        position: relative;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,140,0,0.08));
+        border: 1px solid rgba(255,215,0,0.3);
+        color: var(--vivid-gold);
+        padding: 0.4rem 1.1rem;
+        border-radius: 99px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 1.8rem;
+        animation: fadeUp 0.6s 0.2s both;
+    }
+
+    .hero-badge .dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--vivid-gold);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    .hero h1 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(2.8rem, 6vw, 5rem);
+        font-weight: 900;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, #ffffff 0%, var(--vivid-gold) 45%, var(--saffron) 80%, var(--bright-pink) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1.2rem;
+        animation: fadeUp 0.7s 0.35s both;
+    }
+
+    .hero-sub {
+        font-size: 1.05rem;
+        color: var(--muted);
+        max-width: 520px;
+        margin: 0 auto 2.5rem;
+        line-height: 1.75;
+        animation: fadeUp 0.7s 0.5s both;
+    }
+
+    .hero-sub strong {
+        color: var(--electric-blue);
+        font-weight: 600;
+    }
+
+    .hero-cta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        animation: fadeUp 0.7s 0.65s both;
+    }
+
+    .cta-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, var(--vivid-gold), var(--saffron));
+        color: #1A0A00;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 0.85rem 2.2rem;
+        border-radius: 99px;
+        text-decoration: none;
+        letter-spacing: 0.04em;
+        box-shadow: 0 6px 28px rgba(255,215,0,0.4);
+        transition: all 0.25s ease;
+    }
+
+    .cta-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 36px rgba(255,215,0,0.55);
+        filter: brightness(1.08);
+    }
+
+    .cta-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, var(--bright-pink), #8B00E8);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 0.85rem 2.2rem;
+        border-radius: 99px;
+        text-decoration: none;
+        letter-spacing: 0.04em;
+        box-shadow: 0 6px 28px rgba(255,45,155,0.4);
+        transition: all 0.25s ease;
+    }
+
+    .cta-secondary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 36px rgba(255,45,155,0.55);
+        filter: brightness(1.1);
+    }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        margin: 3.5rem auto 0;
+        max-width: 700px;
+        background: rgba(15,8,48,0.6);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        overflow: hidden;
+        backdrop-filter: blur(12px);
+        animation: fadeUp 0.7s 0.8s both;
+    }
+
+    .stat-item {
+        flex: 1;
+        padding: 1.2rem 1rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .stat-item + .stat-item::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 20%; bottom: 20%;
+        width: 1px;
+        background: rgba(255,215,0,0.15);
+    }
+
+    .stat-num {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2rem;
+        font-weight: 900;
+        line-height: 1;
+        background: linear-gradient(135deg, var(--vivid-gold), var(--saffron));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-label {
+        font-size: 0.73rem;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-top: 0.3rem;
+    }
+
+    /* ── SECTION TITLE ── */
+    .section-title {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .section-title h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.4rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #fff 0%, var(--vivid-gold) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+    }
+
+    .section-title p {
+        color: var(--muted);
+        font-size: 0.92rem;
+    }
+
+    .section-divider {
+        width: 60px; height: 3px;
+        background: linear-gradient(90deg, var(--bright-pink), var(--vivid-gold));
+        border-radius: 99px;
+        margin: 0.8rem auto 0;
+    }
+
+    /* ── FEATURES GRID ── */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.4rem;
+        margin-top: 1rem;
+    }
+
+    .feature-card {
+        background: rgba(15,8,48,0.65);
+        border: 1px solid rgba(255,215,0,0.1);
+        border-radius: 20px;
+        padding: 1.8rem;
+        backdrop-filter: blur(12px);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        cursor: default;
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: var(--card-gradient);
+        opacity: 0.9;
+    }
+
+    .feature-card::after {
+        content: '';
+        position: absolute;
+        bottom: -60px; right: -60px;
+        width: 140px; height: 140px;
+        background: var(--card-glow);
+        border-radius: 50%;
+        opacity: 0.06;
+        transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(255,215,0,0.25);
+        box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    }
+
+    .feature-card:hover::after {
+        opacity: 0.12;
+        transform: scale(1.2);
+    }
+
+    .feature-icon {
+        font-size: 2.4rem;
+        margin-bottom: 1rem;
+        display: block;
+        filter: drop-shadow(0 0 12px var(--card-color));
+    }
+
+    .feature-card h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 0.6rem;
+        letter-spacing: 0.01em;
+    }
+
+    .feature-card p {
+        font-size: 0.87rem;
+        color: var(--muted);
+        line-height: 1.7;
+    }
+
+    .feature-tag {
+        display: inline-block;
+        margin-top: 1rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--card-color);
+        opacity: 0.85;
+    }
+
+    /* Card colour themes */
+    .card-gold   { --card-gradient: linear-gradient(90deg,#FFD700,#FF8C00); --card-glow: #FFD700; --card-color: #FFD700; }
+    .card-pink   { --card-gradient: linear-gradient(90deg,#FF2D9B,#8B00E8); --card-glow: #FF2D9B; --card-color: #FF2D9B; }
+    .card-blue   { --card-gradient: linear-gradient(90deg,#00C3FF,#0057FF); --card-glow: #00C3FF; --card-color: #00C3FF; }
+    .card-green  { --card-gradient: linear-gradient(90deg,#00F5A0,#00C3FF); --card-glow: #00F5A0; --card-color: #00F5A0; }
+    .card-orange { --card-gradient: linear-gradient(90deg,#FF8C00,#FF2D9B); --card-glow: #FF8C00; --card-color: #FF8C00; }
+
+    /* ── MARQUEE STRIP ── */
+    .marquee-wrap {
+        overflow: hidden;
+        margin: 4rem 0 0;
+        padding: 1rem 0;
+        border-top: 1px solid rgba(255,215,0,0.08);
+        border-bottom: 1px solid rgba(255,215,0,0.08);
+        background: rgba(15,8,48,0.4);
+    }
+
+    .marquee-track {
+        display: flex;
+        gap: 3rem;
+        animation: marquee 22s linear infinite;
+        width: max-content;
+    }
+
+    .marquee-track span {
+        white-space: nowrap;
+        font-size: 0.82rem;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .marquee-track span em {
+        font-style: normal;
+        font-size: 1rem;
+    }
+
+    @keyframes marquee {
+        from { transform: translateX(0); }
+        to   { transform: translateX(-50%); }
+    }
+
+    /* ── WHY SHIKSHA SETU ── */
+    .why-section {
+        margin-top: 4.5rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+    }
+
+    @media (max-width: 700px) {
+        .why-section { grid-template-columns: 1fr; }
+    }
+
+    .why-text h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.2rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #fff 0%, var(--vivid-gold) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1.2rem;
+        line-height: 1.15;
+    }
+
+    .why-text p {
+        color: var(--muted);
+        line-height: 1.8;
+        font-size: 0.92rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .why-checklist {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .why-checklist li {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        font-size: 0.9rem;
+        color: #d0c8f0;
+    }
+
+    .check-icon {
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    .check-gold  { background: rgba(255,215,0,0.15); color: var(--vivid-gold); border: 1px solid rgba(255,215,0,0.3); }
+    .check-pink  { background: rgba(255,45,155,0.15); color: var(--bright-pink); border: 1px solid rgba(255,45,155,0.3); }
+    .check-blue  { background: rgba(0,195,255,0.15);  color: var(--electric-blue); border: 1px solid rgba(0,195,255,0.3); }
+    .check-green { background: rgba(0,245,160,0.15);  color: var(--emerald); border: 1px solid rgba(0,245,160,0.3); }
+
+    .why-visual {
+        background: rgba(15,8,48,0.65);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 2rem;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 8px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,215,0,0.08);
+    }
+
+    .xp-bar-block { margin-bottom: 1.4rem; }
+
+    .xp-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        margin-bottom: 0.5rem;
+        color: var(--muted);
+    }
+
+    .xp-label span:last-child { color: var(--vivid-gold); font-weight: 600; }
+
+    .xp-track {
+        height: 8px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 99px;
+        overflow: hidden;
+    }
+
+    .xp-fill {
+        height: 100%;
+        border-radius: 99px;
+        background: var(--bar-color);
+        box-shadow: 0 0 10px var(--bar-glow);
+        animation: fillBar 1.5s cubic-bezier(0.16,1,0.3,1) both;
+        animation-delay: var(--delay);
+    }
+
+    @keyframes fillBar {
+        from { width: 0 !important; }
+    }
+
+    /* ── CTA BOTTOM ── */
+    .cta-bottom {
+        margin-top: 5rem;
+        text-align: center;
+        padding: 3.5rem 2rem;
+        background: rgba(15,8,48,0.7);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        backdrop-filter: blur(12px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-bottom::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 50% 0%, rgba(255,215,0,0.08) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    .cta-bottom h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.4rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #fff 0%, var(--vivid-gold) 60%, var(--bright-pink) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.8rem;
+    }
+
+    .cta-bottom p {
+        color: var(--muted);
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<!-- ══════════════ HERO ══════════════ -->
+<section class="hero">
+    <div class="hero-badge" data-translate="hero_badge">
+        <div class="dot"></div>
+        Grades 6–12 &nbsp;·&nbsp; STEM Learning &nbsp;·&nbsp; Rural India
+    </div>
+
+    <h1 data-translate="hero_title">Learn. Play.<br>Lead the Kingdom.</h1>
+
+    <p class="hero-sub" data-translate="hero_subtitle">
+        A <strong>gamified STEM platform</strong> built for rural schools —
+        where every lesson is an adventure and every student a champion.
+    </p>
+
+    <div class="hero-cta">
+        <a href="/register" class="cta-primary" data-translate="start_learning">🚀 Start Learning Free</a>
+        <a href="/leaderboard" class="cta-secondary" data-translate="view_leaderboard">🏆 View Leaderboard</a>
+    </div>
+
+
+</section>
+
+<!-- ══════════════ MARQUEE ══════════════ -->
+<div class="marquee-wrap">
+    <div class="marquee-track">
+        <span><em>🔬</em> <span data-translate="physics_labs">Physics Labs</span></span>
+        <span><em>⚗️</em> <span data-translate="chemistry_sims">Chemistry Sims</span></span>
+        <span><em>🧬</em> <span data-translate="biology_explorer">Biology Explorer</span></span>
+        <span><em>🎮</em> <span data-translate="stem_games">STEM Games</span></span>
+        <span><em>📊</em> <span data-translate="teacher_dashboard">Teacher Dashboard</span></span>
+        <span><em>🏆</em> <span data-translate="xp_leaderboard">XP Leaderboard</span></span>
+        <span><em>🌟</em> <span data-translate="royal_badges">Royal Badges</span></span>
+        <span><em>🔭</em> <span data-translate="science_quests">Science Quests</span></span>
+        <!-- duplicate for infinite loop -->
+        <span><em>🔬</em> <span data-translate="physics_labs">Physics Labs</span></span>
+        <span><em>⚗️</em> <span data-translate="chemistry_sims">Chemistry Sims</span></span>
+        <span><em>🧬</em> <span data-translate="biology_explorer">Biology Explorer</span></span>
+        <span><em>🎮</em> <span data-translate="stem_games">STEM Games</span></span>
+        <span><em>📊</em> <span data-translate="teacher_dashboard">Teacher Dashboard</span></span>
+        <span><em>🏆</em> <span data-translate="xp_leaderboard">XP Leaderboard</span></span>
+        <span><em>🌟</em> <span data-translate="royal_badges">Royal Badges</span></span>
+        <span><em>🔭</em> <span data-translate="science_quests">Science Quests</span></span>
+    </div>
+</div>
+
+<!-- ══════════════ FEATURES ══════════════ -->
+<section style="margin-top:4.5rem;">
+    <div class="section-title">
+        <h2 data-translate="what_we_provide">What We Provide</h2>
+        <p data-translate="features_subtitle">Everything a student needs to excel — all in one royal platform</p>
+        <div class="section-divider"></div>
+    </div>
+
+    <div class="features-grid">
+
+        <div class="feature-card card-gold">
+            <span class="feature-icon">🎮</span>
+            <h3 data-translate="feature_stem_games">Interactive STEM Games</h3>
+            <p data-translate="feature_stem_games_desc">Learn Physics, Math, and Science through immersive games designed to make concepts click — not just memorised.</p>
+        </div>
+
+        <div class="feature-card card-blue">
+            <span class="feature-icon">🔬</span>
+            <h3 data-translate="feature_labs">Physics & Chemistry Virtual Labs</h3>
+            <p data-translate="feature_labs_desc">Conduct real experiments in a safe virtual environment. Break things, rebuild them — no equipment needed.</p>
+        </div>
+
+        <div class="feature-card card-green">
+            <span class="feature-icon">🧬</span>
+            <h3 data-translate="feature_bio">Biology Simulations</h3>
+            <p data-translate="feature_bio_desc">Explore cells, ecosystems, and the human body through vivid 3D simulations that bring biology to life.</p>
+        </div>
+
+        <div class="feature-card card-pink">
+            <span class="feature-icon">📊</span>
+            <h3 data-translate="feature_teacher">Teacher Analytics Dashboard</h3>
+            <p data-translate="feature_teacher_desc">Real-time insights into student progress, weak areas, and engagement — so teachers can teach smarter.</p>
+        </div>
+
+        <div class="feature-card card-orange">
+            <span class="feature-icon">🏆</span>
+            <h3 data-translate="feature_xp">XP & Leaderboard System</h3>
+            <p data-translate="feature_xp_desc">Earn XP for every lesson, quiz, and challenge. Climb the royal leaderboard and earn legendary badges.</p>
+        </div>
+
+    </div>
+</section>
+
+<!-- ══════════════ WHY SHIKSHA SETU ══════════════ -->
+<section class="why-section">
+    <div class="why-text">
+        <h2 data-translate="why_title">Why ShikshaSetu<br>Stands Apart 👑</h2>
+        <p data-translate="why_desc">Built specifically for rural Indian schools with limited resources — we bring world-class STEM education to every classroom, in every district.</p>
+        <ul class="why-checklist">
+            <li>
+                <div class="check-icon check-gold">✦</div>
+                <span data-translate="why_1">Works on low-bandwidth connections & basic devices</span>
+            </li>
+            <li>
+                <div class="check-icon check-pink">♥</div>
+                <span data-translate="why_2">Available in regional languages for every learner</span>
+            </li>
+            <li>
+                <div class="check-icon check-blue">★</div>
+                <span data-translate="why_3">Curriculum-aligned with NCERT for Grades 6–12</span>
+            </li>
+            <li>
+                <div class="check-icon check-green">✔</div>
+                <span data-translate="why_4">Gamification keeps dropout rates low & scores high</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="why-visual">
+        <p style="font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1.5rem;" data-translate="student_progress">📈 Student Progress This Week</p>
+
+        <div class="xp-bar-block">
+            <div class="xp-label"><span data-translate="physics">Physics</span><span>82 XP</span></div>
+            <div class="xp-track">
+                <div class="xp-fill" style="width:82%; --bar-color: linear-gradient(90deg,#FFD700,#FF8C00); --bar-glow:#FFD700; --delay:0.2s;"></div>
+            </div>
+        </div>
+
+        <div class="xp-bar-block">
+            <div class="xp-label"><span data-translate="chemistry">Chemistry</span><span>67 XP</span></div>
+            <div class="xp-track">
+                <div class="xp-fill" style="width:67%; --bar-color: linear-gradient(90deg,#FF2D9B,#8B00E8); --bar-glow:#FF2D9B; --delay:0.4s;"></div>
+            </div>
+        </div>
+
+        <div class="xp-bar-block">
+            <div class="xp-label"><span data-translate="biology">Biology</span><span>91 XP</span></div>
+            <div class="xp-track">
+                <div class="xp-fill" style="width:91%; --bar-color: linear-gradient(90deg,#00F5A0,#00C3FF); --bar-glow:#00F5A0; --delay:0.6s;"></div>
+            </div>
+        </div>
+
+        <div class="xp-bar-block">
+            <div class="xp-label"><span data-translate="mathematics">Mathematics</span><span>74 XP</span></div>
+            <div class="xp-track">
+                <div class="xp-fill" style="width:74%; --bar-color: linear-gradient(90deg,#00C3FF,#0057FF); --bar-glow:#00C3FF; --delay:0.8s;"></div>
+            </div>
+        </div>
+
+        <div style="margin-top:1.8rem;padding-top:1.2rem;border-top:1px solid rgba(255,215,0,0.1);display:flex;align-items:center;justify-content:space-between;">
+            <div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:900;background:linear-gradient(135deg,var(--vivid-gold),var(--saffron));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">314 XP</div>
+                <div style="font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;" data-translate="total_this_week">Total this week</div>
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════ BOTTOM CTA ══════════════ -->
+<section class="cta-bottom">
+    <h2 data-translate="cta_title">Ready to Begin Your Quest? 👑</h2>
+    <p data-translate="cta_desc">Join thousands of students across India already levelling up their STEM skills.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+        <a href="/register" class="cta-primary" data-translate="join_free">🚀 Join ShikshaSetu Free</a>
+        <a href="/login" class="cta-secondary" data-translate="student_login">🔐 Student Login</a>
+    </div>
+</section>
+
+{% endblock %}

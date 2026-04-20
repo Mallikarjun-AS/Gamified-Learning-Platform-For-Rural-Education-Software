@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ShikshaSetu{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        :root {
+            --royal-purple: #2D0B6B;
+            --deep-navy:    #0A0A2E;
+            --vivid-gold:   #FFD700;
+            --bright-pink:  #FF2D9B;
+            --electric-blue:#00C3FF;
+            --emerald:      #00F5A0;
+            --saffron:      #FF8C00;
+            --bg:           #06031A;
+            --surface:      #0F0830;
+            --border:       rgba(255,215,0,0.18);
+            --text:         #F0EAFF;
+            --muted:        #9B8FC0;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ROYAL BACKGROUND */
+        .bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .bg-canvas::before {
+            content: '';
+            position: absolute;
+            top: -20%; left: -10%;
+            width: 80vw; height: 80vh;
+            background: radial-gradient(ellipse at center,
+                rgba(88,28,220,0.35) 0%,
+                rgba(45,11,107,0.2) 40%,
+                transparent 70%);
+            animation: breathe 8s ease-in-out infinite alternate;
+        }
+
+        .bg-canvas::after {
+            content: '';
+            position: absolute;
+            bottom: -10%; right: -10%;
+            width: 60vw; height: 60vh;
+            background: radial-gradient(ellipse at center,
+                rgba(0,195,255,0.2) 0%,
+                rgba(0,245,160,0.08) 50%,
+                transparent 70%);
+            animation: breathe 10s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes breathe {
+            from { transform: scale(1) rotate(0deg); }
+            to   { transform: scale(1.1) rotate(3deg); }
+        }
+
+        .orb-pink {
+            position: fixed;
+            top: 30%; right: 5%;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(255,45,155,0.15) 0%, transparent 65%);
+            pointer-events: none;
+            z-index: 0;
+            animation: floatOrb 12s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatOrb {
+            from { transform: translateY(0) scale(1); }
+            to   { transform: translateY(-40px) scale(1.05); }
+        }
+
+        /* STARS */
+        .stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+        .star {
+            position: absolute;
+            border-radius: 50%;
+            background: #fff;
+            animation: twinkle var(--dur) ease-in-out infinite alternate;
+        }
+
+        @keyframes twinkle {
+            from { opacity: 0.1; transform: scale(0.8); }
+            to   { opacity: 0.9; transform: scale(1.2); }
+        }
+
+        /* ROYAL GRADIENT STRIP */
+        .royal-strip {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--bright-pink), var(--vivid-gold),
+                var(--electric-blue), var(--emerald),
+                var(--saffron), var(--bright-pink));
+            background-size: 200% 100%;
+            animation: shimmer 4s linear infinite;
+            z-index: 300;
+        }
+
+        @keyframes shimmer {
+            0%   { background-position: 0% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: sticky;
+            top: 0; z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 3rem;
+            height: 76px;
+            background: rgba(6,3,26,0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 1px 40px rgba(88,28,220,0.25);
+            animation: slideDown 0.8s cubic-bezier(0.16,1,0.3,1) both;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .brand-emblem {
+            position: relative;
+            width: 44px; height: 44px;
+        }
+
+        .brand-emblem-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--vivid-gold), var(--saffron), var(--bright-pink));
+            animation: hueShift 6s linear infinite;
+        }
+
+        @keyframes hueShift {
+            from { filter: hue-rotate(0deg); }
+            to   { filter: hue-rotate(360deg); }
+        }
+
+        .brand-emblem-inner {
+            position: absolute;
+            inset: 2px;
+            background: var(--surface);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .brand-name { display: flex; flex-direction: column; line-height: 1.1; }
+
+        .brand-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.75rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            background: linear-gradient(135deg, var(--vivid-gold) 0%, #ffb700 50%, var(--saffron) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand-tagline {
+            font-size: 0.62rem;
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--electric-blue);
+            opacity: 0.85;
+        }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .navbar-links a {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+            letter-spacing: 0.03em;
+            position: relative;
+        }
+
+        .navbar-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 4px; left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 60%; height: 2px;
+            background: linear-gradient(90deg, var(--vivid-gold), var(--saffron));
+            border-radius: 99px;
+            transition: transform 0.25s ease;
+        }
+
+        .navbar-links a:hover { color: var(--vivid-gold); }
+        .navbar-links a:hover::after { transform: translateX(-50%) scaleX(1); }
+
+        .navbar-links a.btn-login {
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 24px;
+            color: var(--vivid-gold);
+            padding: 0.45rem 1.2rem;
+        }
+        .navbar-links a.btn-login::after { display: none; }
+        .navbar-links a.btn-login:hover {
+            background: rgba(255,215,0,0.08);
+            border-color: var(--vivid-gold);
+            box-shadow: 0 0 18px rgba(255,215,0,0.2);
+        }
+
+        .navbar-links a.btn-register {
+            background: linear-gradient(135deg, var(--bright-pink), #8B00E8);
+            color: #fff;
+            padding: 0.5rem 1.4rem;
+            border-radius: 24px;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(255,45,155,0.4);
+            transition: all 0.25s ease;
+        }
+        .navbar-links a.btn-register::after { display: none; }
+        .navbar-links a.btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(255,45,155,0.55);
+            filter: brightness(1.1);
+        }
+
+        .nav-crown { font-size: 0.75rem; opacity: 0.35; color: var(--vivid-gold); margin: 0 0.3rem; }
+
+        /* LANGUAGE SELECTOR */
+        .language-bar {
+            position: relative;
+            z-index: 150;
+            background: rgba(6,3,26,0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,215,0,0.1);
+            padding: 0.5rem 0;
+            animation: slideDown 0.5s 0.2s cubic-bezier(0.16,1,0.3,1) both;
+        }
+
+        .language-bar .container {
+            padding: 0.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .language-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(15,8,48,0.5);
+            border-radius: 50px;
+            padding: 0.4rem 1rem;
+            border: 1px solid rgba(255,215,0,0.2);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .language-selector select {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            font-size: 0.85rem;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .language-selector option {
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        .language-selector i {
+            color: var(--vivid-gold);
+            font-size: 0.9rem;
+        }
+
+        /* PAGE CORNER ORNAMENTS */
+        .page-frame {
+            position: fixed;
+            inset: 4px;
+            pointer-events: none;
+            z-index: 150;
+            border: 1px solid rgba(255,215,0,0.05);
+        }
+        .page-frame::before, .page-frame::after {
+            content: '✦';
+            position: absolute;
+            font-size: 1.4rem;
+            color: rgba(255,215,0,0.25);
+        }
+        .page-frame::before { top: 8px; left: 12px; }
+        .page-frame::after  { bottom: 8px; right: 12px; }
+
+        /* MAIN CONTAINER */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 2rem 2rem 4rem;
+            animation: fadeUp 0.8s 0.3s cubic-bezier(0.16,1,0.3,1) both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(32px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* FOOTER */
+        .footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem;
+            color: var(--muted);
+            font-size: 0.8rem;
+            border-top: 1px solid rgba(255,215,0,0.1);
+            letter-spacing: 0.05em;
+        }
+
+        .footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .footer .gold { color: var(--vivid-gold); }
+        .footer .pink { color: var(--bright-pink); }
+        .footer-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--vivid-gold); opacity: 0.4; }
+
+        /* LOADING OVERLAY */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1001;
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--vivid-gold);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .spinner-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,215,0,0.1);
+            border-top: 4px solid var(--vivid-gold);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        .spinner-text {
+            font-size: 1rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .spinner-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .spinner-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--vivid-gold);
+            animation: pulse 1.4s ease-in-out infinite both;
+        }
+
+        .spinner-dot:nth-child(1) { animation-delay: -0.32s; }
+        .spinner-dot:nth-child(2) { animation-delay: -0.16s; }
+        .spinner-dot:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--bright-pink), var(--electric-blue));
+            border-radius: 99px;
+        }
+
+        /* UTILITY CLASSES FOR CHILD PAGES */
+        .royal-card {
+            background: rgba(15,8,48,0.7);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,215,0,0.1);
+        }
+
+        .heading-royal {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff 0%, var(--vivid-gold) 60%, var(--saffron) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn-royal {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--vivid-gold), var(--saffron));
+            color: #1A0A00;
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding: 0.75rem 2rem;
+            border-radius: 99px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 24px rgba(255,215,0,0.35);
+            transition: all 0.25s ease;
+            text-decoration: none;
+            letter-spacing: 0.04em;
+        }
+
+        .btn-royal:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(255,215,0,0.5);
+            filter: brightness(1.08);
+        }
+
+        .btn-vivid {
+            background: linear-gradient(135deg, var(--bright-pink), var(--electric-blue));
+            color: #fff;
+            box-shadow: 0 4px 24px rgba(255,45,155,0.35);
+        }
+
+        .btn-vivid:hover { box-shadow: 0 8px 32px rgba(255,45,155,0.55); }
+
+        .badge-gold {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,140,0,0.08));
+            border: 1px solid rgba(255,215,0,0.3);
+            color: var(--vivid-gold);
+            padding: 0.3rem 0.85rem;
+            border-radius: 99px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+
+        /* Notification System Styles */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .notification-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            pointer-events: all;
+        }
+
+        .notification {
+            background: rgba(15, 8, 48, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 215, 0, 0.1);
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            pointer-events: all;
+            border-left: 4px solid;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .notification.hiding {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+
+        .notification::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--vivid-gold), var(--bright-pink));
+            opacity: 0.5;
+        }
+
+        .notification.success {
+            border-left-color: var(--emerald);
+        }
+        .notification.success .notification-icon {
+            color: var(--emerald);
+        }
+        .notification.success .notification-progress {
+            background: linear-gradient(90deg, var(--emerald), var(--electric-blue));
+        }
+
+        .notification.error {
+            border-left-color: var(--bright-pink);
+        }
+        .notification.error .notification-icon {
+            color: var(--bright-pink);
+        }
+        .notification.error .notification-progress {
+            background: linear-gradient(90deg, var(--bright-pink), #ff6b6b);
+        }
+
+        .notification.warning {
+            border-left-color: var(--saffron);
+        }
+        .notification.warning .notification-icon {
+            color: var(--saffron);
+        }
+        .notification.warning .notification-progress {
+            background: linear-gradient(90deg, var(--saffron), var(--vivid-gold));
+        }
+
+        .notification.info {
+            border-left-color: var(--electric-blue);
+        }
+        .notification.info .notification-icon {
+            color: var(--electric-blue);
+        }
+        .notification.info .notification-progress {
+            background: linear-gradient(90deg, var(--electric-blue), var(--emerald));
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .notification-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .notification-message {
+            flex: 1;
+            font-size: 0.9rem;
+            color: var(--text);
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0 4px;
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .notification-close:hover {
+            color: var(--vivid-gold);
+        }
+
+        .notification-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            transform-origin: left;
+            animation: progressShrink 5s linear forwards;
+        }
+
+        @keyframes progressShrink {
+            from { transform: scaleX(1); }
+            to { transform: scaleX(0); }
+        }
+
+        @media (max-width: 480px) {
+            .notification-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 0 1.5rem; }
+            .brand-title { font-size: 1.4rem; }
+            .navbar-links a { padding: 0.4rem 0.6rem; font-size: 0.8rem; }
+            .language-bar .container { justify-content: center; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Royal decorative elements -->
+    <div class="royal-strip"></div>
+    <div class="page-frame"></div>
+    <div class="bg-canvas"></div>
+    <div class="orb-pink"></div>
+    <div class="stars" id="stars"></div>
+
+    <!-- Notification System Container -->
+    <div class="notification-container" id="notificationContainer">
+        <div class="notification-wrapper" id="notificationWrapper"></div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay"></div>
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner-container">
+            <div class="spinner"></div>
+            <div class="spinner-text" data-translate="translating">Translating content...</div>
+            <div class="spinner-dots">
+                <div class="spinner-dot"></div>
+                <div class="spinner-dot"></div>
+                <div class="spinner-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="{{ url_for('home') }}" class="navbar-brand">
+            <div class="brand-emblem">
+                <div class="brand-emblem-ring"></div>
+                <div class="brand-emblem-inner">👑</div>
+            </div>
+            <div class="brand-name">
+                <span class="brand-title">ShikshaSetu</span>
+                <span class="brand-tagline" data-translate="tagline">Bridge to Excellence</span>
+            </div>
+        </a>
+
+        <div class="navbar-links">
+            <a href="{{ url_for('home') }}" data-translate="home">Home</a>
+            <span class="nav-crown">✦</span>
+            <a href="{{ url_for('leaderboard') }}" data-translate="leaderboard">Leaderboard</a>
+            {% if session.get('user_id') %}
+                <span class="nav-crown">✦</span>
+                {% if session.get('role') == 'student' %}
+                    <a href="{{ url_for('student_dashboard') }}" data-translate="dashboard">Dashboard</a>
+                {% else %}
+                    <a href="{{ url_for('teacher_dashboard') }}" data-translate="dashboard">Dashboard</a>
+                {% endif %}
+                <span class="nav-crown">✦</span>
+                <a href="{{ url_for('logout') }}" class="btn-login" data-translate="logout">Logout</a>
+            {% else %}
+                <span class="nav-crown">✦</span>
+                <a href="{{ url_for('login') }}" class="btn-login" data-translate="login">Login</a>
+                <a href="{{ url_for('register') }}" class="btn-register" data-translate="register">Register →</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Language Selector -->
+    <div class="language-bar">
+        <div class="container">
+            <div class="language-selector">
+                <i class="fas fa-globe"></i>
+                <select id="language-select">
+                    <option value="en">English</option>
+                    <option value="kn">ಕನ್ನಡ</option>
+                    <option value="hi">हिन्दी</option>
+                    <option value="ml">മലയാളം</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <span class="gold">✦</span>
+            <span data-translate="copyright">ShikshaSetu © 2026</span>
+            <div class="footer-dot"></div>
+            <span data-translate="crafted">Crafted with <span class="pink">♥</span> for learners across India</span>
+            <span class="gold">✦</span>
+        </div>
+    </footer>
+
+    <!-- Hidden flash messages container -->
+    <div style="display: none;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message" data-type="{{ category if category in ['success', 'error', 'warning', 'info'] else 'info' }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        const CURRENT_LANG = '{{ current_lang if current_lang else "en" }}';
+    </script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/translation.js') }}"></script>
+    <script>
+        (function() {
+            const starsEl = document.getElementById('stars');
+            if (starsEl) {
+                for (let i = 0; i < 90; i++) {
+                    const s = document.createElement('div');
+                    s.className = 'star';
+                    const size = Math.random() * 2.5 + 0.5;
+                    s.style.cssText = `
+                        width:${size}px; height:${size}px;
+                        top:${Math.random()*100}%; left:${Math.random()*100}%;
+                        --dur:${(Math.random()*3+2).toFixed(1)}s;
+                        animation-delay:${(Math.random()*4).toFixed(1)}s;
+                        opacity:${(Math.random()*0.4+0.1).toFixed(2)};
+                    `;
+                    starsEl.appendChild(s);
+                }
+            }
+        })();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

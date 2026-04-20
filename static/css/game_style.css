@@ -1,0 +1,732 @@
+/* ================================================================
+   ShikshaSetu — game_style.css v2.0
+   Royal dark theme — works with game.html + game_engine.js
+================================================================ */
+
+/* ── RESET CONFLICTS from base styles ── */
+#missionContainer * {
+    box-sizing: border-box;
+}
+
+/* ── SCREEN VISIBILITY ── */
+.mission-screen {
+    display: none;
+    width: 100%;
+}
+
+.mission-screen.active {
+    display: block;
+}
+
+/* ================================================================
+   INTRO SCREEN
+================================================================ */
+#missionIntro .intro-card {
+    position: relative;
+    max-width: 560px;
+    margin: 0 auto;
+    background: rgba(15, 8, 48, 0.82);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 28px;
+    padding: 3.5rem 2.8rem;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 215, 0, 0.12);
+    text-align: center;
+    overflow: hidden;
+}
+
+/* ── Subject badge ── */
+.subject-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,140,0,0.07));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    color: #FFD700;
+    padding: 0.4rem 1.2rem;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.6rem;
+    position: relative;
+    z-index: 1;
+}
+
+.subject-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #FFD700;
+    animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.35; transform: scale(0.6); }
+}
+
+/* ── Mission icon ── */
+.mission-icon-wrap {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1.2rem;
+    z-index: 1;
+}
+
+.mission-icon {
+    font-size: 5rem;
+    display: block;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.55));
+    animation: iconHover 2.8s ease-in-out infinite;
+}
+
+.mission-icon-glow {
+    position: absolute;
+    inset: -24px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,215,0,0.18) 0%, transparent 70%);
+    animation: glowBreath 2.8s ease-in-out infinite;
+}
+
+@keyframes iconHover {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50%       { transform: translateY(-12px) rotate(4deg); }
+}
+
+@keyframes glowBreath {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50%       { transform: scale(1.25); opacity: 0.3; }
+}
+
+/* ── Mission title & story ── */
+#missionTitle {
+    font-family: 'Cormorant Garamond', serif !important;
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem) !important;
+    font-weight: 900 !important;
+    background: linear-gradient(135deg, #ffffff 0%, #FFD700 50%, #FF8C00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem !important;
+    position: relative;
+    z-index: 1;
+    line-height: 1.1 !important;
+    /* Override any base h1/h2 color */
+    color: transparent !important;
+    text-shadow: none !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+}
+
+#missionStory {
+    color: #9B8FC0 !important;
+    font-size: 0.97rem !important;
+    line-height: 1.8 !important;
+    max-width: 460px;
+    margin: 0 auto 1.8rem !important;
+    position: relative;
+    z-index: 1;
+    text-shadow: none !important;
+}
+
+/* ── Reward chips ── */
+.reward-chips {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.reward-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.38rem 1rem;
+    border-radius: 99px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border: 1px solid;
+}
+
+.chip-xp    { background: rgba(255,215,0,0.1);  border-color: rgba(255,215,0,0.3);  color: #FFD700; }
+.chip-time  { background: rgba(0,195,255,0.1);  border-color: rgba(0,195,255,0.3);  color: #00C3FF; }
+.chip-diff  { background: rgba(255,45,155,0.1); border-color: rgba(255,45,155,0.3); color: #FF2D9B; }
+
+/* ── Start button ── */
+.btn-start-mission {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #FFD700, #FF8C00) !important;
+    color: #1A0A00 !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 1.05rem !important;
+    letter-spacing: 0.06em;
+    padding: 0.95rem 2.8rem !important;
+    border: none !important;
+    border-radius: 99px !important;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(255, 215, 0, 0.4) !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+    z-index: 1;
+    text-shadow: none !important;
+    transform: none;
+}
+
+.btn-start-mission::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-start-mission:hover::before { left: 100%; }
+.btn-start-mission:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 16px 44px rgba(255, 215, 0, 0.55) !important;
+    filter: brightness(1.08);
+    background: linear-gradient(135deg, #FFD700, #FF8C00) !important;
+}
+
+/* ================================================================
+   GAME SCREEN
+================================================================ */
+#gameScreen {
+    /* Override old CSS — no longer absolute positioned box */
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    display: none; /* controlled by JS active class */
+    margin: 0 !important;
+}
+
+#gameScreen.active {
+    display: block;
+}
+
+/* ── HUD bar ── */
+.game-hud {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+    padding: 0 0.25rem;
+}
+
+.hud-left  { display: flex; flex-direction: column; gap: 0.3rem; }
+.hud-right { display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-end; }
+
+.hud-label {
+    font-size: 0.64rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #9B8FC0;
+}
+
+.hud-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.65rem;
+    font-weight: 900;
+    color: #FFD700;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px rgba(255,215,0,0.45));
+}
+
+.hud-value.blue  { color: #00C3FF; filter: drop-shadow(0 0 8px rgba(0,195,255,0.45)); }
+.hud-value.pink  { color: #FF2D9B; filter: drop-shadow(0 0 8px rgba(255,45,155,0.45)); }
+.hud-value.green { color: #00F5A0; filter: drop-shadow(0 0 8px rgba(0,245,160,0.45)); }
+
+#levelTitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    font-weight: 900;
+    text-align: center;
+    background: linear-gradient(135deg, #00C3FF, #00F5A0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    white-space: nowrap;
+    /* Reset any global heading styles */
+    color: transparent !important;
+    text-shadow: none !important;
+    margin: 0 !important;
+}
+
+/* ── XP / Score display (overrides old scoreDisplay) ── */
+#scoreDisplay {
+    /* Override old absolute positioning */
+    position: static !important;
+    display: inline;
+    color: #FFD700 !important;
+    font-family: 'Cormorant Garamond', serif !important;
+    font-size: inherit !important;
+    font-weight: 900;
+    text-shadow: none !important;
+    pointer-events: none;
+}
+
+/* ── Progress/health bars ── */
+.hud-bars {
+    display: flex;
+    gap: 0.7rem;
+    margin-bottom: 0.75rem;
+}
+
+.hud-bar-wrap { flex: 1; }
+
+.hud-bar-label {
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #9B8FC0;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.hud-bar-track {
+    height: 7px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.hud-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.45s ease;
+}
+
+.bar-health   { background: linear-gradient(90deg, #FF2D9B, #ff6b6b); width: 100%; }
+.bar-power    { background: linear-gradient(90deg, #00C3FF, #00F5A0); width: 60%;  }
+.bar-progress { background: linear-gradient(90deg, #FFD700, #FF8C00); width: 0%;   }
+
+/* Old #progressBar & #progressFill — remap to new system */
+#progressBar  { display: none !important; } /* replaced by .hud-bar-track */
+#progressFill { display: none !important; }
+
+/* ── Canvas wrapper ── */
+.canvas-frame {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 215, 0, 0.22);
+    box-shadow:
+        0 0 0 1px rgba(255,215,0,0.07),
+        0 14px 52px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255,215,0,0.1);
+    background: #020010;
+}
+
+.canvas-frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background: linear-gradient(135deg,
+        rgba(255,215,0,0.035) 0%,
+        transparent 40%,
+        rgba(0,195,255,0.025) 100%);
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Corner ornaments */
+.canvas-corner {
+    position: absolute;
+    width: 22px; height: 22px;
+    border-color: rgba(255, 215, 0, 0.55);
+    border-style: solid;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.canvas-corner.tl { top: 8px;    left: 8px;   border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
+.canvas-corner.tr { top: 8px;    right: 8px;  border-width: 2px 2px 0 0; border-radius: 0 4px 0 0; }
+.canvas-corner.bl { bottom: 8px; left: 8px;   border-width: 0 0 2px 2px; border-radius: 0 0 0 4px; }
+.canvas-corner.br { bottom: 8px; right: 8px;  border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
+
+/* The canvas itself — override old white background */
+#gameCanvas {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    background: #020010 !important; /* dark, overrides old white */
+    border: none !important;        /* border now on .canvas-frame */
+    position: relative;
+    z-index: 1;
+}
+
+/* Scanlines overlay */
+.scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.035) 2px,
+        rgba(0, 0, 0, 0.035) 4px
+    );
+    pointer-events: none;
+    z-index: 2;
+    border-radius: 18px;
+}
+
+/* ── Status row below canvas ── */
+.game-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+    padding: 0.55rem 1.1rem;
+    background: rgba(15, 8, 48, 0.65);
+    border: 1px solid rgba(255, 215, 0, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #9B8FC0;
+}
+
+.status-item strong { color: #ffffff; font-weight: 700; }
+
+.status-live {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #00F5A0;
+}
+
+.live-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #00F5A0;
+    animation: dotPulse 1.4s infinite;
+}
+
+/* ── Old .option-btn — restyle to royal ── */
+.option-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px auto;
+    padding: 0.7rem 1.8rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,140,0,0.08));
+    border: 1px solid rgba(255, 215, 0, 0.3) !important;
+    border-radius: 12px !important;
+    color: #FFD700 !important;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.22s ease;
+    text-shadow: none !important;
+    box-shadow: none !important;
+}
+
+.option-btn:hover {
+    background: rgba(255, 215, 0, 0.18) !important;
+    border-color: #FFD700 !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.2) !important;
+}
+
+/* ── Old pump / water / simulationVisual ── (kept for compatibility) ── */
+#simulationVisual {
+    height: 150px;
+    margin: 20px auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pump {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 215, 0, 0.4);
+    margin: auto;
+    position: relative;
+    background: rgba(255, 215, 0, 0.06);
+}
+
+.rotate { animation: spin 1.2s linear infinite; }
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.water {
+    width: 10px;
+    height: 0;
+    background: linear-gradient(to top, #00C3FF, #00F5A0);
+    margin: auto;
+    border-radius: 4px;
+    transition: height 1s ease;
+    box-shadow: 0 0 8px #00C3FF;
+}
+
+/* ================================================================
+   MISSION COMPLETE SCREEN
+================================================================ */
+#missionComplete .complete-card {
+    position: relative;
+    max-width: 540px;
+    margin: 0 auto;
+    background: rgba(15, 8, 48, 0.88);
+    border: 1px solid rgba(0, 245, 160, 0.25);
+    border-radius: 28px;
+    padding: 3.5rem 2.8rem;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.55),
+        0 0 60px rgba(0, 245, 160, 0.07),
+        inset 0 1px 0 rgba(0, 245, 160, 0.1);
+    text-align: center;
+    overflow: hidden;
+}
+
+.complete-trophy {
+    font-size: 5.5rem;
+    display: block;
+    margin-bottom: 0.8rem;
+    filter: drop-shadow(0 0 28px rgba(0,245,160,0.65));
+    animation: trophyBounce 0.8s 0.2s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes trophyBounce {
+    from { opacity: 0; transform: scale(0) rotate(-20deg) translateY(30px); }
+    to   { opacity: 1; transform: scale(1) rotate(0deg)  translateY(0); }
+}
+
+.complete-title {
+    font-family: 'Cormorant Garamond', serif !important;
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem) !important;
+    font-weight: 900 !important;
+    background: linear-gradient(135deg, #00F5A0 0%, #00C3FF 50%, #FFD700 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem !important;
+    color: transparent !important;
+    text-shadow: none !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+}
+
+.complete-subtitle {
+    color: #9B8FC0 !important;
+    font-size: 0.92rem !important;
+    margin-bottom: 1.8rem !important;
+    text-shadow: none !important;
+}
+
+/* Override old #finalScore p tag */
+#finalScore {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    color: #00F5A0 !important;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 10px rgba(0,245,160,0.4) !important;
+}
+
+/* XP earned display */
+.xp-earned-display {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(0,245,160,0.1), rgba(0,195,255,0.07));
+    border: 1px solid rgba(0, 245, 160, 0.3);
+    border-radius: 18px;
+    padding: 1.4rem 3rem;
+    margin-bottom: 1.8rem;
+}
+
+.xp-earned-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: #00F5A0;
+    line-height: 1;
+    filter: drop-shadow(0 0 12px rgba(0,245,160,0.5));
+    animation: countPop 0.8s 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes countPop {
+    from { transform: scale(0.4); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+
+.xp-earned-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #9B8FC0;
+    margin-top: 0.3rem;
+}
+
+/* Score breakdown grid */
+.score-breakdown {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.9rem;
+    margin-bottom: 2rem;
+}
+
+.score-stat {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+    padding: 0.9rem 0.5rem;
+}
+
+.score-stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1;
+}
+
+.score-stat-label {
+    font-size: 0.67rem;
+    color: #9B8FC0;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.25rem;
+}
+
+/* Stars */
+.star-rating {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.8rem;
+}
+
+.star {
+    font-size: 2.5rem;
+    opacity: 0;
+    animation: starPop 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
+    filter: drop-shadow(0 0 10px rgba(255,215,0,0.7));
+}
+
+.star:nth-child(1) { animation-delay: 0.6s; }
+.star:nth-child(2) { animation-delay: 0.85s; }
+.star:nth-child(3) { animation-delay: 1.1s; }
+
+.star.dim {
+    filter: none;
+    animation: starPopDim 0.4s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+
+@keyframes starPop    { from{opacity:0;transform:scale(0) rotate(-30deg)}  to{opacity:1;transform:scale(1) rotate(0deg)} }
+@keyframes starPopDim { from{opacity:0;transform:scale(0)}  to{opacity:0.18;transform:scale(1)} }
+
+/* Return button */
+.btn-return {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #00F5A0, #00C3FF) !important;
+    color: #001a10 !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 1rem !important;
+    letter-spacing: 0.05em;
+    padding: 0.95rem 2.5rem !important;
+    border: none !important;
+    border-radius: 99px !important;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,245,160,0.35) !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+    text-shadow: none !important;
+    transform: none;
+}
+
+.btn-return::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-return:hover::before  { left: 100%; }
+.btn-return:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 14px 44px rgba(0,245,160,0.52) !important;
+    filter: brightness(1.08);
+    background: linear-gradient(135deg, #00F5A0, #00C3FF) !important;
+}
+
+/* ── Confetti ── */
+.confetti-piece {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    border-radius: 2px;
+    animation: confettiFall var(--cf-dur) var(--cf-delay) ease-in both;
+}
+
+@keyframes confettiFall {
+    0%   { opacity: 1; transform: translateY(-10vh) rotate(0deg) scale(1); }
+    100% { opacity: 0; transform: translateY(110vh) rotate(720deg) scale(0.4); }
+}
+
+/* ── Floating XP text (injected by JS) ── */
+@keyframes floatUp {
+    from { opacity: 1; transform: translate(-50%,-50%); }
+    to   { opacity: 0; transform: translate(-50%,-160%); }
+}
+
+/* ================================================================
+   RESPONSIVE
+================================================================ */
+@media (max-width: 640px) {
+    #missionIntro .intro-card,
+    #missionComplete .complete-card { padding: 2.2rem 1.4rem; }
+
+    .game-hud { grid-template-columns: 1fr auto; }
+
+    .score-breakdown { gap: 0.5rem; }
+    .score-stat-num  { font-size: 1.4rem; }
+
+    .hud-bars { flex-direction: column; gap: 0.4rem; }
+
+    .reward-chips { gap: 0.5rem; }
+    .reward-chip  { font-size: 0.7rem; padding: 0.3rem 0.8rem; }
+}

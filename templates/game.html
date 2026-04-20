@@ -1,0 +1,2708 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+/* ══════════════════════════════════
+   GAME PAGE — MISSION CONTROL v5.0
+   4 Screens: Intro → Learn → Game → Complete
+══════════════════════════════════ */
+
+.mission-screen { display:none; }
+.mission-screen.active { display:block; }
+
+.game-wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 1rem 0 4rem;
+}
+
+/* ── Core Animations ── */
+@keyframes popIn {
+    from { opacity:0; transform:translateY(40px) scale(0.95); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes blobFloat {
+    from { transform:translate(0,0) scale(1); }
+    to   { transform:translate(14px,-14px) scale(1.1); }
+}
+@keyframes rocketHover {
+    0%,100% { transform:translateY(0) rotate(-5deg); }
+    50%      { transform:translateY(-12px) rotate(5deg); }
+}
+@keyframes glowPulse {
+    0%,100% { transform:scale(1); opacity:0.8; }
+    50%      { transform:scale(1.3); opacity:0.3; }
+}
+@keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:0.4; transform:scale(0.7); }
+}
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeIn {
+    from { opacity:0; }
+    to   { opacity:1; }
+}
+@keyframes slideInLeft {
+    from { opacity:0; transform:translateX(-24px); }
+    to   { opacity:1; transform:translateX(0); }
+}
+@keyframes slideInRight {
+    from { opacity:0; transform:translateX(24px); }
+    to   { opacity:1; transform:translateX(0); }
+}
+@keyframes countUp {
+    from { transform:scale(0.5); opacity:0; }
+    to   { transform:scale(1); opacity:1; }
+}
+@keyframes trophyBounce {
+    from { opacity:0; transform:scale(0) rotate(-20deg) translateY(30px); }
+    to   { opacity:1; transform:scale(1) rotate(0deg) translateY(0); }
+}
+@keyframes starPop {
+    from { opacity:0; transform:scale(0) rotate(-30deg); }
+    to   { opacity:1; transform:scale(1) rotate(0deg); }
+}
+@keyframes starPopDim {
+    from { opacity:0; transform:scale(0); }
+    to   { opacity:0.2; transform:scale(1); }
+}
+@keyframes confettiFall {
+    0%   { opacity:1; transform:translateY(-10vh) rotate(0deg) scale(1); }
+    100% { opacity:0; transform:translateY(110vh) rotate(720deg) scale(0.5); }
+}
+@keyframes particleFly {
+    0%   { opacity:0; transform:translateY(0) scale(0); }
+    20%  { opacity:0.7; }
+    100% { opacity:0; transform:translateY(-200px) scale(1.4); }
+}
+@keyframes progressFill {
+    from { width:0%; }
+    to   { width:var(--target-w); }
+}
+@keyframes demoBlink {
+    0%,100% { opacity:1; }
+    50%      { opacity:0.3; }
+}
+@keyframes demoArrow {
+    0%,100% { transform:translateX(0); }
+    50%      { transform:translateX(8px); }
+}
+
+/* ══════════════════════════════════
+   SHARED CARD BASE
+══════════════════════════════════ */
+.screen-card {
+    background: rgba(15,8,48,0.85);
+    border: 1px solid rgba(255,215,0,0.15);
+    border-radius: 28px;
+    backdrop-filter: blur(24px);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.55),
+                inset 0 1px 0 rgba(255,215,0,0.08);
+    position: relative; overflow: hidden;
+    animation: popIn 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+.screen-card::before {
+    content:'';
+    position:absolute; top:-100px; right:-80px;
+    width:280px; height:280px;
+    background:radial-gradient(circle,rgba(255,45,155,0.12) 0%,transparent 70%);
+    pointer-events:none;
+    animation:blobFloat 6s ease-in-out infinite alternate;
+}
+.screen-card::after {
+    content:'';
+    position:absolute; bottom:-80px; left:-60px;
+    width:240px; height:240px;
+    background:radial-gradient(circle,rgba(0,195,255,0.08) 0%,transparent 70%);
+    pointer-events:none;
+    animation:blobFloat 9s ease-in-out infinite alternate-reverse;
+}
+
+/* ══════════════════════════════════
+   SCREEN 1 — INTRO
+══════════════════════════════════ */
+.intro-card {
+    padding: 3.5rem 3rem;
+    text-align: center;
+}
+
+.badge-row {
+    display:flex; align-items:center; justify-content:center;
+    gap:0.8rem; flex-wrap:wrap; margin-bottom:1.5rem;
+    position:relative; z-index:1;
+}
+.subject-badge {
+    display:inline-flex; align-items:center; gap:8px;
+    background:linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,140,0,0.08));
+    border:1px solid rgba(255,215,0,0.3);
+    color:var(--vivid-gold); padding:0.4rem 1.2rem;
+    border-radius:99px; font-size:0.75rem; font-weight:700;
+    letter-spacing:0.12em; text-transform:uppercase;
+}
+.grade-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(255,45,155,0.1); border:1px solid rgba(255,45,155,0.3);
+    color:var(--bright-pink); padding:0.4rem 1rem;
+    border-radius:99px; font-size:0.75rem; font-weight:700;
+    letter-spacing:0.1em;
+}
+.badge-dot {
+    width:6px; height:6px; border-radius:50%;
+    background:currentColor; animation:pulse 2s infinite;
+}
+.mission-icon-wrap {
+    position:relative; display:inline-block;
+    margin-bottom:1.2rem; z-index:1;
+}
+.mission-icon {
+    font-size:5rem; display:block;
+    filter:drop-shadow(0 0 24px rgba(255,215,0,0.5));
+    animation:rocketHover 2.5s ease-in-out infinite;
+}
+.mission-icon-glow {
+    position:absolute; inset:-24px; border-radius:50%;
+    background:radial-gradient(circle,rgba(255,215,0,0.2) 0%,transparent 70%);
+    animation:glowPulse 2.5s ease-in-out infinite;
+}
+#missionTitle {
+    font-family:'Cormorant Garamond',serif;
+    font-size:clamp(1.8rem,4vw,2.8rem); font-weight:900;
+    background:linear-gradient(135deg,#fff 0%,var(--vivid-gold) 50%,var(--saffron) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text; margin-bottom:0.6rem;
+    position:relative; z-index:1; line-height:1.1;
+}
+.curriculum-box {
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:14px; padding:1rem 1.4rem;
+    margin:0 auto 1.5rem; max-width:560px;
+    text-align:left; position:relative; z-index:1;
+}
+.curriculum-box-title {
+    font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:0.6rem;
+}
+.curriculum-topics { display:flex; flex-wrap:wrap; gap:0.4rem; }
+.curr-topic {
+    font-size:0.72rem; font-weight:600;
+    padding:0.22rem 0.65rem; border-radius:7px;
+    background:rgba(255,215,0,0.08);
+    border:1px solid rgba(255,215,0,0.2);
+    color:rgba(255,215,0,0.85);
+}
+#missionStory {
+    color:var(--muted); font-size:0.92rem; line-height:1.8;
+    max-width:500px; margin:0 auto 1.8rem;
+    position:relative; z-index:1;
+}
+.reward-chips {
+    display:flex; align-items:center; justify-content:center;
+    gap:0.8rem; flex-wrap:wrap; margin-bottom:2.2rem;
+    position:relative; z-index:1;
+}
+.reward-chip {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:0.4rem 1rem; border-radius:99px;
+    font-size:0.78rem; font-weight:600; letter-spacing:0.05em; border:1px solid;
+}
+.chip-xp   { background:rgba(255,215,0,0.1);  border-color:rgba(255,215,0,0.3);  color:var(--vivid-gold); }
+.chip-time { background:rgba(0,195,255,0.1);  border-color:rgba(0,195,255,0.3);  color:var(--electric-blue); }
+.chip-diff { background:rgba(255,45,155,0.1); border-color:rgba(255,45,155,0.3); color:var(--bright-pink); }
+
+.btn-start-mission {
+    display:inline-flex; align-items:center; gap:12px;
+    background:linear-gradient(135deg,var(--vivid-gold),var(--saffron));
+    color:#1A0A00; font-family:'Outfit',sans-serif;
+    font-weight:800; font-size:1.05rem; letter-spacing:0.06em;
+    padding:1rem 2.8rem; border:none; border-radius:99px;
+    cursor:pointer; position:relative; overflow:hidden;
+    box-shadow:0 8px 32px rgba(255,215,0,0.4);
+    transition:transform 0.25s,box-shadow 0.25s,filter 0.25s; z-index:1;
+}
+.btn-start-mission::before {
+    content:''; position:absolute; top:0; left:-100%; width:100%; height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);
+    transition:left 0.5s;
+}
+.btn-start-mission:hover::before { left:100%; }
+.btn-start-mission:hover {
+    transform:translateY(-4px);
+    box-shadow:0 16px 44px rgba(255,215,0,0.55);
+    filter:brightness(1.08);
+}
+
+/* ══════════════════════════════════
+   SCREEN 2 — LEARN (NEW)
+   Theory + Equations + Demo
+══════════════════════════════════ */
+.learn-card { padding: 0; }
+
+.learn-header {
+    padding: 1.8rem 2.5rem 1.4rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative; z-index: 1;
+}
+.learn-header-left { display: flex; align-items: center; gap: 14px; }
+.learn-icon { font-size: 2.2rem; }
+.learn-header-title {
+    font-family:'Cormorant Garamond',serif;
+    font-size: 1.6rem; font-weight: 900;
+    background: linear-gradient(135deg,#fff,var(--vivid-gold));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; line-height: 1;
+}
+.learn-header-sub {
+    font-size: 0.75rem; color: var(--muted);
+    letter-spacing: 0.06em; margin-top: 4px;
+}
+
+/* Tab navigation */
+.learn-tabs {
+    display: flex; gap: 4px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px; padding: 4px;
+}
+.learn-tab {
+    padding: 0.5rem 1.1rem; border-radius: 7px;
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;
+    cursor: pointer; border: none; transition: all 0.2s;
+    background: transparent; color: var(--muted);
+    font-family: 'Outfit', sans-serif;
+}
+.learn-tab.active {
+    background: rgba(255,215,0,0.15);
+    border: 1px solid rgba(255,215,0,0.3);
+    color: var(--vivid-gold);
+}
+.learn-tab:hover:not(.active) { color: var(--text); background: rgba(255,255,255,0.04); }
+
+/* Tab content panels */
+.learn-body { padding: 2rem 2.5rem; position: relative; z-index: 1; min-height: 420px; }
+.learn-panel { display: none; animation: fadeIn 0.3s ease; }
+.learn-panel.active { display: block; }
+
+/* ── THEORY PANEL ── */
+.theory-section { margin-bottom: 1.8rem; }
+.theory-section:last-child { margin-bottom: 0; }
+.theory-tag {
+    display: inline-block; font-size: 0.62rem; font-weight: 800;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 4px; margin-bottom: 8px;
+    background: rgba(0,195,255,0.1); border: 1px solid rgba(0,195,255,0.25);
+    color: var(--electric-blue);
+}
+.theory-title {
+    font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; color: #fff;
+    display: flex; align-items: center; gap: 10px;
+}
+.theory-title .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--electric-blue); flex-shrink: 0;
+}
+.theory-text {
+    font-size: 0.88rem; color: var(--muted); line-height: 1.75;
+    padding-left: 18px; border-left: 2px solid rgba(0,195,255,0.2);
+}
+.theory-text strong { color: var(--text); }
+
+/* Key facts grid */
+.facts-grid {
+    display: grid; grid-template-columns: repeat(auto-fit,minmax(190px,1fr));
+    gap: 12px; margin-top: 1rem;
+}
+.fact-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 14px 16px;
+    transition: border-color 0.2s, transform 0.2s;
+    animation: slideInLeft 0.4s ease both;
+}
+.fact-card:hover { border-color: rgba(255,215,0,0.25); transform: translateY(-2px); }
+.fact-card:nth-child(2) { animation-delay:0.05s; }
+.fact-card:nth-child(3) { animation-delay:0.1s; }
+.fact-card:nth-child(4) { animation-delay:0.15s; }
+.fact-emoji { font-size: 1.5rem; margin-bottom: 8px; }
+.fact-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+.fact-value { font-size: 0.92rem; font-weight: 700; color: #fff; margin-top: 2px; }
+
+/* ── EQUATIONS PANEL ── */
+.eq-list { display: flex; flex-direction: column; gap: 16px; }
+.eq-card {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,215,0,0.12);
+    border-radius: 14px; padding: 18px 20px;
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 16px; align-items: center;
+    animation: slideInRight 0.35s ease both;
+}
+.eq-card:nth-child(2) { animation-delay:0.06s; }
+.eq-card:nth-child(3) { animation-delay:0.12s; }
+.eq-card:nth-child(4) { animation-delay:0.18s; }
+.eq-card:hover { border-color: rgba(255,215,0,0.3); }
+.eq-left {}
+.eq-name {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+}
+.eq-formula {
+    font-family: 'Courier New', monospace;
+    font-size: 1.25rem; font-weight: 700;
+    color: var(--vivid-gold);
+    text-shadow: 0 0 20px rgba(255,215,0,0.4);
+    letter-spacing: 0.04em;
+}
+.eq-desc {
+    font-size: 0.8rem; color: var(--muted); margin-top: 6px; line-height: 1.5;
+}
+.eq-example {
+    background: rgba(255,215,0,0.06);
+    border: 1px solid rgba(255,215,0,0.18);
+    border-radius: 10px; padding: 12px 16px;
+    text-align: center; min-width: 130px;
+}
+.eq-example-label { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+.eq-example-val {
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem; color: var(--electric-blue); font-weight: 600;
+    line-height: 1.5;
+}
+
+/* ── DEMO PANEL ── */
+.demo-panel-inner {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+}
+@media (max-width:640px) { .demo-panel-inner { grid-template-columns:1fr; } }
+
+.demo-canvas-wrap {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; overflow: hidden;
+    position: relative;
+}
+.demo-canvas-label {
+    position: absolute; top: 10px; left: 12px;
+    font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--electric-blue);
+    background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 4px;
+    z-index: 2;
+}
+#demoCanvas { display: block; width: 100%; height: auto; }
+
+.demo-instructions { display: flex; flex-direction: column; gap: 12px; }
+.demo-title {
+    font-size: 1rem; font-weight: 800; color: #fff; margin-bottom: 4px;
+}
+.demo-subtitle { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+
+.controls-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.control-item {
+    display: flex; align-items: center; gap: 12px;
+    animation: slideInLeft 0.3s ease both;
+}
+.control-item:nth-child(2) { animation-delay: 0.05s; }
+.control-item:nth-child(3) { animation-delay: 0.10s; }
+.control-item:nth-child(4) { animation-delay: 0.15s; }
+.control-key {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 38px; height: 32px; padding: 0 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-bottom: 3px solid rgba(255,255,255,0.1);
+    border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+    color: #fff; font-family: 'Courier New',monospace;
+    flex-shrink: 0;
+}
+.control-desc { font-size: 0.82rem; color: var(--muted); }
+.control-desc strong { color: var(--text); }
+
+.scoring-rules { margin-top: 4px; }
+.scoring-rule {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    animation: slideInRight 0.3s ease both;
+}
+.scoring-rule:last-child { border-bottom: none; }
+.rule-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.rule-text { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.rule-text strong { color: var(--text); }
+
+/* Progress stepper */
+.learn-stepper {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 1.2rem 2.5rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    position: relative; z-index: 1;
+}
+.stepper-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.15); transition: all 0.3s;
+    cursor: pointer;
+}
+.stepper-dot.active { background: var(--vivid-gold); box-shadow: 0 0 10px rgba(255,215,0,0.5); width: 24px; border-radius: 4px; }
+.stepper-dot.done { background: var(--emerald); }
+
+.learn-footer {
+    padding: 1.4rem 2.5rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative; z-index: 1;
+    gap: 12px; flex-wrap: wrap;
+}
+.learn-progress-text {
+    font-size: 0.75rem; color: var(--muted); letter-spacing: 0.06em;
+}
+.learn-progress-text strong { color: var(--text); }
+.btn-nav {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 0.7rem 1.6rem; border-radius: 99px;
+    font-family: 'Outfit',sans-serif; font-weight: 700;
+    font-size: 0.88rem; letter-spacing: 0.04em;
+    cursor: pointer; border: none; transition: all 0.2s;
+}
+.btn-prev {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--muted);
+}
+.btn-prev:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.btn-next {
+    background: linear-gradient(135deg, rgba(0,195,255,0.2), rgba(0,245,160,0.15));
+    border: 1px solid rgba(0,195,255,0.35); color: var(--electric-blue);
+}
+.btn-next:hover { filter: brightness(1.15); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,195,255,0.25); }
+.btn-launch-game {
+    background: linear-gradient(135deg, var(--vivid-gold), var(--saffron));
+    color: #1a0a00; font-weight: 800; font-size: 0.95rem;
+    box-shadow: 0 6px 24px rgba(255,215,0,0.4);
+}
+.btn-launch-game:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(255,215,0,0.55); filter: brightness(1.08); }
+.btn-launch-game .arrow { animation: demoArrow 1.2s infinite; display: inline-block; }
+
+/* ══════════════════════════════════
+   SCREEN 3 — GAME
+══════════════════════════════════ */
+.game-hud {
+    display:grid; grid-template-columns:1fr auto 1fr;
+    align-items:center; gap:1rem;
+    margin-bottom:1rem; animation:fadeUp 0.5s both;
+}
+.hud-left  { display:flex; flex-direction:column; gap:0.35rem; }
+.hud-right { display:flex; flex-direction:column; gap:0.35rem; align-items:flex-end; }
+.hud-label { font-size:0.65rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
+.hud-value {
+    font-family:'Cormorant Garamond',serif;
+    font-size:1.6rem; font-weight:900; color:var(--vivid-gold); line-height:1;
+    filter:drop-shadow(0 0 8px rgba(255,215,0,0.4));
+}
+.hud-value.blue { color:var(--electric-blue); filter:drop-shadow(0 0 8px rgba(0,195,255,0.4)); }
+.hud-value.pink { color:var(--bright-pink);   filter:drop-shadow(0 0 8px rgba(255,45,155,0.4)); }
+#levelTitle {
+    font-family:'Cormorant Garamond',serif;
+    font-size:1.15rem; font-weight:900; text-align:center;
+    background:linear-gradient(135deg,var(--electric-blue),var(--emerald));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text; white-space:nowrap;
+}
+.hud-bars { display:flex; gap:0.6rem; margin-bottom:0.8rem; }
+.hud-bar-wrap { flex:1; }
+.hud-bar-label {
+    font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:4px;
+    display:flex; justify-content:space-between;
+}
+.hud-bar-track {
+    height:8px; background:rgba(255,255,255,0.06);
+    border-radius:99px; overflow:hidden;
+}
+.hud-bar-fill { height:100%; border-radius:99px; transition:width 0.4s ease; }
+.bar-health   { background:linear-gradient(90deg,var(--bright-pink),#ff6b6b); width:100%; }
+.bar-power    { background:linear-gradient(90deg,var(--electric-blue),var(--emerald)); width:60%; }
+.bar-progress { background:linear-gradient(90deg,var(--vivid-gold),var(--saffron)); width:0%; }
+.canvas-frame {
+    position:relative; border-radius:20px; overflow:hidden;
+    border:2px solid rgba(255,215,0,0.2);
+    box-shadow:0 0 0 1px rgba(255,215,0,0.08),
+               0 12px 48px rgba(0,0,0,0.6),
+               inset 0 1px 0 rgba(255,215,0,0.1);
+    background:#020010;
+}
+.canvas-frame::before {
+    content:''; position:absolute; inset:0; border-radius:20px;
+    background:linear-gradient(135deg,rgba(255,215,0,0.04) 0%,transparent 40%,rgba(0,195,255,0.03) 100%);
+    pointer-events:none; z-index:2;
+}
+.canvas-corner {
+    position:absolute; width:24px; height:24px;
+    border-color:rgba(255,215,0,0.5); border-style:solid;
+    z-index:3; pointer-events:none;
+}
+.canvas-corner.tl { top:8px; left:8px;   border-width:2px 0 0 2px; border-radius:4px 0 0 0; }
+.canvas-corner.tr { top:8px; right:8px;  border-width:2px 2px 0 0; border-radius:0 4px 0 0; }
+.canvas-corner.bl { bottom:8px; left:8px;  border-width:0 0 2px 2px; border-radius:0 0 0 4px; }
+.canvas-corner.br { bottom:8px; right:8px; border-width:0 2px 2px 0; border-radius:0 0 4px 0; }
+.scanlines {
+    position:absolute; inset:0;
+    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
+    pointer-events:none; z-index:2; border-radius:20px;
+}
+#gameCanvas { display:block; width:100%; height:auto; position:relative; z-index:1; }
+.game-status-row {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:0.8rem; padding:0.6rem 1rem;
+    background:rgba(15,8,48,0.6); border:1px solid rgba(255,215,0,0.1);
+    border-radius:12px; backdrop-filter:blur(10px);
+}
+.status-item { display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--muted); }
+.status-item strong { color:#fff; font-weight:700; }
+.status-live {
+    display:flex; align-items:center; gap:6px;
+    font-size:0.72rem; font-weight:600; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--emerald);
+}
+.live-dot {
+    width:7px; height:7px; border-radius:50%;
+    background:var(--emerald); animation:pulse 1.5s infinite;
+}
+
+/* ══════════════════════════════════
+   SCREEN 4 — COMPLETE
+══════════════════════════════════ */
+.complete-card {
+    padding: 3.5rem 3rem; text-align: center;
+    border-color: rgba(0,245,160,0.2);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5),
+                0 0 60px rgba(0,245,160,0.06),
+                inset 0 1px 0 rgba(0,245,160,0.1);
+}
+.complete-card::before { background: radial-gradient(circle,rgba(0,245,160,0.1) 0%,transparent 70%); }
+.complete-trophy {
+    font-size:5.5rem; display:block; margin-bottom:1rem;
+    animation:trophyBounce 0.8s 0.2s cubic-bezier(0.16,1,0.3,1) both;
+    filter:drop-shadow(0 0 28px rgba(0,245,160,0.6));
+    position:relative; z-index:1;
+}
+.complete-title {
+    font-family:'Cormorant Garamond',serif;
+    font-size:clamp(2rem,4vw,3rem); font-weight:900;
+    background:linear-gradient(135deg,var(--emerald) 0%,var(--electric-blue) 50%,var(--vivid-gold) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text; margin-bottom:0.5rem; position:relative; z-index:1;
+}
+.complete-subtitle { color:var(--muted); font-size:0.9rem; margin-bottom:2rem; position:relative; z-index:1; }
+.xp-earned-display {
+    display:inline-flex; flex-direction:column; align-items:center;
+    background:linear-gradient(135deg,rgba(0,245,160,0.1),rgba(0,195,255,0.07));
+    border:1px solid rgba(0,245,160,0.3); border-radius:20px;
+    padding:1.5rem 3rem; margin-bottom:2rem; position:relative; z-index:1;
+}
+.xp-earned-num {
+    font-family:'Cormorant Garamond',serif;
+    font-size:3.5rem; font-weight:900; color:var(--emerald); line-height:1;
+    filter:drop-shadow(0 0 12px rgba(0,245,160,0.5));
+    animation:countUp 1s 0.5s both;
+}
+.xp-earned-label {
+    font-size:0.75rem; letter-spacing:0.15em; text-transform:uppercase;
+    color:var(--muted); margin-top:0.3rem;
+}
+.score-breakdown {
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:1rem; margin-bottom:2rem; position:relative; z-index:1;
+}
+.score-stat {
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+    border-radius:14px; padding:1rem;
+}
+.score-stat-num {
+    font-family:'Cormorant Garamond',serif;
+    font-size:1.8rem; font-weight:900; color:#fff; line-height:1;
+}
+.score-stat-label { font-size:0.68rem; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; margin-top:0.25rem; }
+.star-rating {
+    display:flex; align-items:center; justify-content:center;
+    gap:0.5rem; margin-bottom:2rem; position:relative; z-index:1;
+}
+.star { font-size:2.5rem; opacity:0; animation:starPop 0.4s cubic-bezier(0.16,1,0.3,1) both; filter:drop-shadow(0 0 8px rgba(255,215,0,0.6)); }
+.star:nth-child(1) { animation-delay:0.6s; }
+.star:nth-child(2) { animation-delay:0.8s; }
+.star:nth-child(3) { animation-delay:1.0s; }
+.star.dim { filter:none; opacity:0.2 !important; animation:starPopDim 0.4s both; }
+.star.dim:nth-child(1) { animation-delay:0.6s; }
+.star.dim:nth-child(2) { animation-delay:0.8s; }
+.star.dim:nth-child(3) { animation-delay:1.0s; }
+.btn-return {
+    display:inline-flex; align-items:center; gap:12px;
+    background:linear-gradient(135deg,var(--emerald),var(--electric-blue));
+    color:#001a10; font-family:'Outfit',sans-serif; font-weight:800;
+    font-size:1rem; letter-spacing:0.05em; padding:1rem 2.5rem;
+    border:none; border-radius:99px; cursor:pointer; position:relative; overflow:hidden;
+    box-shadow:0 8px 32px rgba(0,245,160,0.35);
+    transition:transform 0.25s,box-shadow 0.25s,filter 0.25s; z-index:1;
+}
+.btn-return:hover { transform:translateY(-4px); box-shadow:0 14px 44px rgba(0,245,160,0.5); filter:brightness(1.08); }
+
+/* Confetti */
+.confetti-piece {
+    position:fixed; pointer-events:none; z-index:9999; border-radius:2px;
+    animation:confettiFall var(--cf-dur) var(--cf-delay) ease-in both;
+}
+.particle {
+    position:absolute; border-radius:50%; opacity:0;
+    animation:particleFly var(--pdur) var(--pdelay) ease-in infinite;
+    pointer-events:none;
+}
+
+@media (max-width:600px) {
+    .intro-card,.complete-card { padding:2rem 1.2rem; }
+    .learn-body { padding:1.4rem 1.2rem; }
+    .learn-header { padding:1.2rem 1.4rem; flex-direction:column; gap:12px; align-items:flex-start; }
+    .learn-footer { padding:1rem 1.2rem; }
+    .learn-stepper { padding:1rem 1.2rem; }
+    .score-breakdown { gap:0.5rem; }
+    .score-stat-num { font-size:1.4rem; }
+    .game-hud { grid-template-columns:1fr auto; }
+    .eq-card { grid-template-columns:1fr; }
+}
+</style>
+
+<div class="game-wrapper" id="missionContainer">
+
+    <!-- ══════════════════════════════════
+         SCREEN 1 — INTRO
+    ══════════════════════════════════ -->
+    <div id="missionIntro" class="mission-screen active">
+        <div class="screen-card intro-card">
+            <div id="introParticles" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:28px;z-index:0;"></div>
+
+            <div class="badge-row">
+                <div class="subject-badge"><div class="badge-dot"></div><span id="subjectLabel">Loading...</span></div>
+                <div class="grade-badge"><div class="badge-dot"></div>Grade <span id="gradeBadgeNum">—</span></div>
+            </div>
+
+            <div class="mission-icon-wrap">
+                <div class="mission-icon-glow"></div>
+                <span class="mission-icon" id="missionIconDisplay">🚀</span>
+            </div>
+
+            <h2 id="missionTitle">Preparing Mission...</h2>
+
+            <div class="curriculum-box">
+                <div class="curriculum-box-title">📚 Today's Curriculum Topics</div>
+                <div class="curriculum-topics" id="curriculumTopics"></div>
+            </div>
+
+            <p id="missionStory">Your adventure is loading. Stand by, Scholar.</p>
+
+            <div class="reward-chips">
+                <div class="reward-chip chip-xp" id="xpChip">⚡ +50 XP Reward</div>
+                <div class="reward-chip chip-time" id="timeChip">⏱ 60s Mission</div>
+                <div class="reward-chip chip-diff" id="diffChip">🔥 Grade 6</div>
+            </div>
+
+            <button class="btn-start-mission" onclick="goToLearn()">
+                📖 Study & Play
+            </button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         SCREEN 2 — LEARN (NEW)
+    ══════════════════════════════════ -->
+    <div id="learnScreen" class="mission-screen">
+        <div class="screen-card learn-card">
+
+            <!-- Header -->
+            <div class="learn-header">
+                <div class="learn-header-left">
+                    <span class="learn-icon" id="learnIcon">📡</span>
+                    <div>
+                        <div class="learn-header-title" id="learnTitle">Mission Briefing</div>
+                        <div class="learn-header-sub" id="learnSub">Review concepts before the mission</div>
+                    </div>
+                </div>
+                <div class="learn-tabs">
+                    <button class="learn-tab active" onclick="switchTab('theory',this)">📖 Theory</button>
+                    <button class="learn-tab" onclick="switchTab('equations',this)">🔢 Formulae</button>
+                    <button class="learn-tab" onclick="switchTab('demo',this)">🎮 How to Play</button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="learn-body">
+                <!-- Theory Panel -->
+                <div class="learn-panel active" id="panel-theory">
+                    <div id="theoryContent"><!-- filled by JS --></div>
+                </div>
+                <!-- Equations Panel -->
+                <div class="learn-panel" id="panel-equations">
+                    <div class="eq-list" id="equationsContent"><!-- filled by JS --></div>
+                </div>
+                <!-- Demo Panel -->
+                <div class="learn-panel" id="panel-demo">
+                    <div class="demo-panel-inner">
+                        <div class="demo-canvas-wrap">
+                            <div class="demo-canvas-label">🎮 LIVE PREVIEW</div>
+                            <canvas id="demoCanvas" width="340" height="220"></canvas>
+                        </div>
+                        <div class="demo-instructions">
+                            <div>
+                                <div class="demo-title" id="demoGameTitle">Game: Mission</div>
+                                <div class="demo-subtitle" id="demoGameDesc">Get ready to play!</div>
+                            </div>
+                            <div class="controls-list" id="controlsList"><!-- filled by JS --></div>
+                            <div class="scoring-rules" id="scoringRules"><!-- filled by JS --></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress dots -->
+            <div class="learn-stepper">
+                <div class="stepper-dot active" onclick="switchTab('theory',null,0)" id="dot-0"></div>
+                <div class="stepper-dot" onclick="switchTab('equations',null,1)" id="dot-1"></div>
+                <div class="stepper-dot" onclick="switchTab('demo',null,2)" id="dot-2"></div>
+            </div>
+
+            <!-- Footer nav -->
+            <div class="learn-footer">
+                <div class="learn-progress-text">
+                    <strong id="learnTabName">Theory</strong> — <span id="learnTabNum">Step 1 of 3</span>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <button class="btn-nav btn-prev" id="btnPrev" onclick="navTab(-1)" style="display:none;">← Back</button>
+                    <button class="btn-nav btn-next" id="btnNext" onclick="navTab(1)">Next →</button>
+                    <button class="btn-nav btn-launch-game" id="btnLaunch" onclick="startMission()" style="display:none;">
+                        🚀 Launch Mission <span class="arrow">→</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         SCREEN 3 — GAME
+    ══════════════════════════════════ -->
+    <div id="gameScreen" class="mission-screen">
+        <div class="game-hud">
+            <div class="hud-left">
+                <span class="hud-label">⚡ Score</span>
+                <span class="hud-value" id="scoreDisplay">0</span>
+            </div>
+            <div style="text-align:center;">
+                <div id="levelTitle">Mission Active</div>
+            </div>
+            <div class="hud-right">
+                <span class="hud-label">⏱ Time</span>
+                <span class="hud-value blue" id="timerDisplay">1:00</span>
+            </div>
+        </div>
+
+        <div class="hud-bars">
+            <div class="hud-bar-wrap">
+                <div class="hud-bar-label"><span>❤️ Health</span><span id="healthPct">100%</span></div>
+                <div class="hud-bar-track"><div class="hud-bar-fill bar-health" id="healthBar"></div></div>
+            </div>
+            <div class="hud-bar-wrap">
+                <div class="hud-bar-label"><span>⚡ Power</span><span id="powerPct">60%</span></div>
+                <div class="hud-bar-track"><div class="hud-bar-fill bar-power" id="powerBar"></div></div>
+            </div>
+            <div class="hud-bar-wrap">
+                <div class="hud-bar-label"><span>📈 Progress</span><span id="progressPct">0%</span></div>
+                <div class="hud-bar-track"><div class="hud-bar-fill bar-progress" id="progressBar" style="width:0%"></div></div>
+            </div>
+        </div>
+
+        <div class="canvas-frame">
+            <div class="canvas-corner tl"></div>
+            <div class="canvas-corner tr"></div>
+            <div class="canvas-corner bl"></div>
+            <div class="canvas-corner br"></div>
+            <div class="scanlines"></div>
+            <canvas id="gameCanvas" width="720" height="440"></canvas>
+        </div>
+
+        <div class="game-status-row">
+            <div class="status-item">🎯 Combo: <strong id="comboDisplay">x1</strong></div>
+            <div class="status-live"><div class="live-dot"></div>Mission Active</div>
+            <div class="status-item">🏆 Best: <strong id="bestDisplay">0</strong></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         SCREEN 4 — COMPLETE
+    ══════════════════════════════════ -->
+    <div id="missionComplete" class="mission-screen">
+        <div class="screen-card complete-card">
+            <span class="complete-trophy">🏆</span>
+            <h2 class="complete-title">Mission Complete!</h2>
+            <p class="complete-subtitle">Outstanding work, Scholar. The academy salutes you! 👑</p>
+
+            <div class="star-rating" id="starRating">
+                <span class="star">⭐</span>
+                <span class="star">⭐</span>
+                <span class="star dim">⭐</span>
+            </div>
+
+            <div class="xp-earned-display">
+                <div class="xp-earned-num" id="xpEarnedNum">50</div>
+                <div class="xp-earned-label">⚡ XP Earned This Mission</div>
+            </div>
+
+            <div class="score-breakdown">
+                <div class="score-stat">
+                    <div class="score-stat-num" id="finalScoreNum">0</div>
+                    <div class="score-stat-label">📊 Final Score</div>
+                </div>
+                <div class="score-stat">
+                    <div class="score-stat-num" id="accuracyNum">0%</div>
+                    <div class="score-stat-label">🎯 Accuracy</div>
+                </div>
+                <div class="score-stat">
+                    <div class="score-stat-num" id="timeNum">0s</div>
+                    <div class="score-stat-label">⏱ Time</div>
+                </div>
+            </div>
+
+            <button class="btn-return" onclick="submitXP()">🏠 Return to Dashboard</button>
+        </div>
+    </div>
+</div>
+
+<!-- Flask data -->
+<input type="hidden" id="subjectName" value="{{ subject }}">
+<input type="hidden" id="gradeNum"    value="{{ grade }}">
+<input type="hidden" id="scoreInput"  value="0">
+
+<script src="{{ url_for('static', filename='js/game_engine.js') }}"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   GAME.HTML CONTROLLER v5.0
+   Flow: Intro → Learn (Theory/Formulae/Demo) → Game → Complete
+═══════════════════════════════════════════════════ */
+
+const SUBJECT_RAW = document.getElementById('subjectName').value || 'Physics';
+const GRADE       = parseInt(document.getElementById('gradeNum').value)  || 6;
+const SUBJECT     = SUBJECT_RAW.toLowerCase();
+
+/* ── Subject config ── */
+const SUBJECT_CONFIG = {
+    physics:     { icon:'⚡', label:'Physics',      col:'#00C3FF', demoCol:'#00C3FF' },
+    chemistry:   { icon:'⚗️',  label:'Chemistry',    col:'#00F5A0', demoCol:'#00F5A0' },
+    biology:     { icon:'🧬', label:'Biology',      col:'#7CFC00', demoCol:'#7CFC00' },
+    mathematics: { icon:'📐', label:'Mathematics',  col:'#FFD700', demoCol:'#FFD700' },
+    python:      { icon:'🐍', label:'Python',       col:'#FF2D9B', demoCol:'#FF2D9B' },
+    java:        { icon:'☕', label:'Java',         col:'#FF8C00', demoCol:'#FF8C00' },
+    html:        { icon:'🌐', label:'HTML',         col:'#E44D26', demoCol:'#E44D26' },
+};
+const cfg = SUBJECT_CONFIG[SUBJECT] || SUBJECT_CONFIG.physics;
+
+/* ── Curriculum topics ── */
+const CURRICULUM = {
+    physics:     { 6:['Speed','Force','Work','Kinetic Energy'],7:['Velocity','Acceleration','Pressure','Simple Machines'],8:['Electric Circuits','Waves','Sound','Reflection'],9:['Gravitation','Laws of Motion','Optics','Fluid Pressure'],10:['Light Refraction','Magnetic Effects','AC/DC','Power'],11:['Thermodynamics','Rotational Motion','SHM','Mechanical Waves'],12:['Quantum Physics','Semiconductors','Nuclear Reactions','Relativity'] },
+    chemistry:   { 6:['Mixtures','Solutions','Acids','Bases'],7:['Atoms','Elements','Compounds','Periodic Table Basics'],8:['Chemical Reactions','Oxidation','Reduction','Balancing Equations'],9:['Periodic Table','Covalent Bonds','Ionic Bonds','Metals & Non-metals'],10:['pH Scale','Salts','Carbon Compounds','Hydrocarbons'],11:['Organic Chemistry','Isomerism','Reaction Mechanisms','Polymers'],12:['Electrolysis','Coordination Chemistry','Biomolecules','Environmental Chem'] },
+    biology:     { 6:['Cell Organelles','Plant vs Animal Cell','Blood Types','Organ Systems'],7:['Nutrition','Digestion','Respiration','Photosynthesis'],8:['Cell Division','DNA Structure','Reproduction','Growth'],9:['Tissues','Plant Transport','Stomata','Osmosis'],10:['Heredity','Mendelian Genetics','Evolution','Natural Selection'],11:['Nervous System','Hormones','Excretion','Immune System'],12:['Biotechnology','Ecology','Population Dynamics','Biodiversity'] },
+    mathematics: { 6:['Multiplication','Division','Fractions','Percentages'],7:['Algebra','Integers','Ratio & Proportion','Simple Equations'],8:['Linear Equations','Geometry','Mensuration','Data Handling'],9:['Quadratic Equations','Trigonometry','Statistics','Surface Area'],10:['Polynomials','Coordinate Geometry','Probability','Arithmetic Progressions'],11:['Limits','Derivatives','Integrals','Vectors'],12:['Integration','3D Geometry','Matrices','Linear Programming'] },
+    python:      { 7:['print()','Variables','Input','Data Types'],8:['if/else','for loops','while loops','Debugging'],9:['Functions','Lists','Strings','Dictionaries'],10:['Classes','OOP','Inheritance','Modules'],11:['Recursion','Sorting Algorithms','Big-O Notation','Searching'],12:['NumPy Basics','Data Structures','AI Concepts','Complexity Analysis'] },
+    java:        { 6:['Variables','Data Types','System.out.println','Operators'],7:['if/else','for loops','while loops','Arrays'],8:['Methods','Strings','Arrays','Input Scanner'],9:['Classes','Objects','Constructors','Access Modifiers'],10:['Inheritance','Polymorphism','Interfaces','Exceptions'],11:['Collections','Generics','Sorting','Design Patterns'],12:['Multithreading','File I/O','Lambdas','Stream API'] },
+    html:        { 6:['HTML Tags','Headings','Paragraphs','Links'],7:['Images','Lists','Tables','Forms'],8:['Divs','Spans','Classes','IDs'],9:['CSS Basics','Selectors','Box Model','Flexbox'],10:['CSS Grid','Animations','Media Queries','Responsive Design'],11:['JavaScript Basics','DOM Manipulation','Events','Fetch API'],12:['React Concepts','Accessibility','SEO','Performance'] },
+};
+
+/* ── Game meta (time/xp/difficulty) ── */
+const GAME_META = {
+    physics:     { 6:{time:'60s',xp:50,diff:'Beginner',story:'Catch the correct physics answers before they hit the ground! Use arrow keys to move your catcher.'},7:{time:'65s',xp:60,diff:'Easy',story:'Aim your cannon and shoot the correct physics targets floating in space!'},8:{time:'70s',xp:70,diff:'Medium',story:'Fire antibody bullets at the correct answers about waves and electricity.'},9:{time:'75s',xp:80,diff:'Medium',story:'Gravity Sniper — aim and shoot the correct answers about gravitation and optics.'},10:{time:'80s',xp:90,diff:'Hard',story:'PARTICLE COLLIDER — tap the correct orbiting particle before it laps the ring!'},11:{time:'85s',xp:100,diff:'Very Hard',story:'Thermodynamics gauntlet — particles orbit fast, answer correctly to survive!'},12:{time:'90s',xp:120,diff:'Expert',story:'Quantum frontier — the fastest particle collider. Prove your mastery!'} },
+    chemistry:   { 6:{time:'90s',xp:55,diff:'Beginner',story:'Drag chemicals into the beaker to complete reactions. Make solutions, test acids and bases!'},7:{time:'90s',xp:65,diff:'Easy',story:'Build atoms by placing protons and electrons. Identify elements correctly!'},8:{time:'90s',xp:75,diff:'Medium',story:'Periodic Table SPY HEIST — sneak past the spotlight to steal the correct element!'},9:{time:'90s',xp:85,diff:'Medium',story:'Periodic Table SPY HEIST — the spotlight moves faster. Stay in the shadows!'},10:{time:'90s',xp:95,diff:'Hard',story:'MOLECULE FORGE — drag functional groups onto the molecule skeleton to build compounds!'},11:{time:'90s',xp:110,diff:'Very Hard',story:'Advanced Molecule Forge — build esters, amino acids and complex organic molecules!'},12:{time:'90s',xp:130,diff:'Expert',story:'Expert Molecule Forge — haloalkanes, benzaldehyde and more await!'} },
+    biology:     { 6:{time:'75s',xp:50,diff:'Beginner',story:'Fire antibodies to destroy the correct pathogens! Move WBC up/down with arrow keys.'},7:{time:'75s',xp:60,diff:'Easy',story:'Identify cell organelles and organs — fire at the correct answers!'},8:{time:'80s',xp:70,diff:'Medium',story:'DNA HELIX BUILDER — catch the correct complementary base pair before it falls!'},9:{time:'80s',xp:80,diff:'Medium',story:'DNA & RNA — catch correct bases for both DNA replication and RNA transcription!'},10:{time:'85s',xp:90,diff:'Hard',story:'ECOSYSTEM ARCHITECT — drag organisms to their correct trophic layer in the food chain!'},11:{time:'85s',xp:105,diff:'Very Hard',story:'Advanced Ecosystem Architect — aquatic and terrestrial food webs await!'},12:{time:'90s',xp:125,diff:'Expert',story:'Expert Ecosystem — polar, ocean and savannah ecosystems. Place every organism correctly!'} },
+    mathematics: { 6:{time:'70s',xp:50,diff:'Beginner',story:'NINJA BLADE — slash the correct arithmetic answer bubble before it floats away!'},7:{time:'70s',xp:60,diff:'Easy',story:'Ninja Blade — slice algebra and equation bubbles with precision!'},8:{time:'75s',xp:70,diff:'Medium',story:'LASER GEOMETRY — rotate the laser emitter and fire at the correct geometry answer!'},9:{time:'75s',xp:80,diff:'Medium',story:'QUADRATIC CANNON — set the power and fire to hit the correct root targets!'},10:{time:'80s',xp:90,diff:'Hard',story:'MISSION CONTROL — move the crosshair reticle and click the correct orbiting answer panel!'},11:{time:'85s',xp:100,diff:'Very Hard',story:'CALCULUS COASTER — drag the answer slider and open the gate before the coaster crashes!'},12:{time:'90s',xp:120,diff:'Expert',story:'Advanced Calculus Coaster — integration, matrices and probability gates await!'} },
+    python:      { 7:{time:'90s',xp:60,diff:'Beginner',story:'Fill in the blank — drag the correct Python keyword into the code gap!'},8:{time:'90s',xp:70,diff:'Easy',story:'Drag the correct keyword into the code blank — loops, conditions and more!'},9:{time:'90s',xp:80,diff:'Medium',story:'CODE RACE — syntax sprint! Tap the correct fix as it scrolls past your car!'},10:{time:'90s',xp:95,diff:'Medium',story:'DEBUG DUNGEON — fight bug monsters! Choose the correct fix sword to slay each bug!'},11:{time:'90s',xp:110,diff:'Hard',story:'COMPILE & RUN — your program crashes mid-execution! Fix it before the countdown!'},12:{time:'90s',xp:130,diff:'Expert',story:'Expert Compile & Run — complex Python bugs, recursion errors and more!'} },
+    java:        { 6:{time:'90s',xp:60,diff:'Beginner',story:'Java Fill-in-Blank — drag the correct Java token into the code!'},7:{time:'90s',xp:65,diff:'Easy',story:'Java Fill-in-Blank — int, String, println and more!'},8:{time:'90s',xp:70,diff:'Easy',story:'Java Fill-in-Blank — loops, arrays, conditions!'},9:{time:'90s',xp:80,diff:'Medium',story:'CODE RACE Java — syntax sprint! Fix Java errors before the car stops!'},10:{time:'90s',xp:95,diff:'Medium',story:'DEBUG DUNGEON Java — fight bug monsters with the correct Java fixes!'},11:{time:'90s',xp:110,diff:'Hard',story:'JAVA TOWER DEFENSE — place fix towers to destroy buggy Java snippets!'},12:{time:'90s',xp:130,diff:'Expert',story:'COMPILE & RUN Java — your Java program crashes! Apply the correct fix in time!'} },
+    html:        { 6:{time:'90s',xp:55,diff:'Beginner',story:'HTML ARCHITECT — drag HTML tags to build a webpage with a live preview!'},7:{time:'90s',xp:60,diff:'Beginner',story:'HTML Architect — build headings, paragraphs and lists!'},8:{time:'90s',xp:65,diff:'Easy',story:'HTML Architect — build links, images and structured pages!'},9:{time:'90s',xp:75,diff:'Medium',story:'CODE RACE HTML — fix broken HTML syntax before your car stops!'},10:{time:'90s',xp:85,diff:'Medium',story:'CODE RACE HTML/CSS — fix attribute errors, missing tags and more!'},11:{time:'90s',xp:100,diff:'Hard',story:'COMPILE & RUN HTML — your page fails to render! Fix the broken HTML in time!'},12:{time:'90s',xp:120,diff:'Expert',story:'Expert HTML/CSS — complex layout and attribute bugs. Fix them all!'} },
+};
+
+/* ════════════════════════════════════════════════════════
+   LEARN CONTENT DATABASE
+   Each entry: { theory:[{tag,title,text,facts:[]}], equations:[{name,formula,desc,example}], demo:{title,desc,controls:[],scoring:[]} }
+════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   LEARN CONTENT DATABASE  — uses double-quoted strings throughout
+   to avoid apostrophe/single-quote parse errors
+════════════════════════════════════════════════════════ */
+const LEARN_CONTENT = {
+  physics: {
+    6: {
+      theory:[{
+        tag:"Mechanics", title:"Speed, Distance and Time",
+        text:"<strong>Speed</strong> is how fast an object moves. Speed = Distance divided by Time. <strong>Force</strong> = mass x acceleration (Newton second law). <strong>Work</strong> is done when a force moves an object: W = F x d.",
+        facts:[{e:"⚡",l:"Speed Unit",v:"m/s or km/h"},{e:"📏",l:"Distance",v:"Metres (m)"},{e:"⏱",l:"Time",v:"Seconds (s)"},{e:"💡",l:"Remember",v:"v = d / t"}]
+      }],
+      equations:[
+        {name:"Speed",           formula:"v = d / t",          desc:"Velocity equals distance divided by time.",       example:"d=60m, t=6s\nv = 60/6 = 10 m/s"},
+        {name:"Newton 2nd Law",  formula:"F = m x a",          desc:"Force equals mass times acceleration.",           example:"m=5kg, a=3m/s2\nF = 5x3 = 15 N"},
+        {name:"Work Done",       formula:"W = F x d",          desc:"Work is force applied over a distance.",          example:"F=10N, d=4m\nW = 10x4 = 40 J"},
+        {name:"Kinetic Energy",  formula:"KE = 0.5 x m x v2", desc:"Energy of motion — depends on mass and speed.",   example:"m=2kg, v=3m/s\nKE = 0.5x2x9 = 9 J"}
+      ],
+      demo:{title:"Arcade Catcher",desc:"Correct answer blocks fall from above. Move your paddle left/right to catch ONLY the right answer block.",
+        controls:[{key:"←→",desc:"Move paddle <strong>left and right</strong>"},{key:"Touch",desc:"Drag finger to move on mobile"}],
+        scoring:[{icon:"✅",txt:"<strong>+10 pts</strong> per correct block caught"},{icon:"🔥",txt:"<strong>Combo</strong> builds with correct streak"},{icon:"❌",txt:"<strong>-1 life</strong> for catching wrong blocks"}]}
+    },
+    7: {
+      theory:[{
+        tag:"Motion", title:"Velocity, Acceleration and Energy",
+        text:"<strong>Velocity</strong> is speed in a given direction (vector). <strong>Acceleration</strong> = (v - u) / t. <strong>Potential energy</strong> is stored energy due to position: PE = mgh. Power = Work / time.",
+        facts:[{e:"🚀",l:"Acceleration",v:"(v-u)/t"},{e:"🏔",l:"Potential E",v:"PE = mgh"},{e:"📐",l:"Velocity",v:"m/s (vector)"},{e:"⚖",l:"Power",v:"P = W/t"}]
+      }],
+      equations:[
+        {name:"Acceleration",   formula:"a = (v - u) / t",  desc:"Rate of change of velocity.",             example:"u=5, v=15, t=2\na = 5 m/s2"},
+        {name:"Potential Energy",formula:"PE = m x g x h",  desc:"Gravitational potential energy.",          example:"m=10, h=5, g=10\nPE = 500 J"},
+        {name:"Power",          formula:"P = W / t",         desc:"Work done per unit time.",                 example:"W=200J, t=10s\nP = 20 W"},
+        {name:"Pressure",       formula:"P = F / A",         desc:"Force per unit area.",                    example:"F=100N, A=0.5\nP = 200 Pa"}
+      ],
+      demo:{title:"Physics Shooter",desc:"Shoot the correct answer targets floating in space. Aim with mouse or touch, then click or tap to fire!",
+        controls:[{key:"Mouse",desc:"Aim the cannon"},{key:"Click",desc:"Fire bullet"},{key:"Space",desc:"Also fires"}],
+        scoring:[{icon:"🎯",txt:"+20 pts for correct target"},{icon:"💡",txt:"Fact shown after hit"},{icon:"❌",txt:"Wrong target = -1 life"}]}
+    },
+    8: {
+      theory:[{
+        tag:"Ohm's Law", title:"Electric Circuits and Waves",
+        text:"<strong>Ohm's Law</strong>: V = I x R. In a <strong>series circuit</strong> total resistance adds. In <strong>parallel</strong> total resistance decreases. <strong>Wave speed</strong> = frequency x wavelength. Sound travels fastest in solids.",
+        facts:[{e:"⚡",l:"Voltage",v:"Volts (V)"},{e:"🌊",l:"Current",v:"Amperes (A)"},{e:"🔌",l:"Resistance",v:"Ohms (Ω)"},{e:"📡",l:"Wave Speed",v:"v = f x λ"}]
+      }],
+      equations:[
+        {name:"Ohm's Law",          formula:"V = I x R",            desc:"Voltage = current times resistance.",      example:"I=3A, R=4Ω\nV = 3x4 = 12 V"},
+        {name:"Series Resistance",  formula:"R = R1 + R2",          desc:"Total resistance in series.",              example:"R1=3Ω, R2=5Ω\nR = 8 Ω"},
+        {name:"Parallel Resistance",formula:"1/R = 1/R1 + 1/R2",   desc:"Parallel resistance is less than either.", example:"R1=4Ω, R2=4Ω\nR = 2 Ω"},
+        {name:"Wave Speed",         formula:"v = f x λ",             desc:"Speed = frequency x wavelength.",          example:"f=200Hz, λ=1.5m\nv = 300 m/s"}
+      ],
+      demo:{title:"Physics Shooter",desc:"Targets float in space. Aim your cannon with the mouse and click to fire at the correct answer!",
+        controls:[{key:"Mouse",desc:"<strong>Aim</strong> the cannon"},{key:"Click",desc:"<strong>Fire</strong> a bullet"},{key:"Touch",desc:"Tap to aim and fire on mobile"}],
+        scoring:[{icon:"🎯",txt:"+20 pts for correct target"},{icon:"💡",txt:"Fact banner shows after hit"},{icon:"❌",txt:"-1 life for wrong target"}]}
+    },
+    9: {
+      theory:[{
+        tag:"Gravitation", title:"Newton's Laws and Optics",
+        text:"<strong>Newton's 2nd Law</strong>: F = ma. Momentum = mass x velocity. Escape velocity from Earth is about 11.2 km/s. <strong>Buoyancy</strong> = weight of fluid displaced. Convex lenses converge light.",
+        facts:[{e:"🌍",l:"Escape Vel",v:"11.2 km/s"},{e:"🌊",l:"Buoyancy",v:"Weight displaced"},{e:"🚀",l:"Momentum",v:"p = mv"},{e:"🔭",l:"Convex",v:"Converges light"}]
+      }],
+      equations:[
+        {name:"Momentum",       formula:"p = m x v",       desc:"Mass times velocity.",              example:"m=5kg, v=10\np = 50 kg.m/s"},
+        {name:"Newton 2nd",     formula:"F = m x a",       desc:"Net force = mass x acceleration.",  example:"m=8kg, a=5\nF = 40 N"},
+        {name:"Free Fall",      formula:"v = u + g x t",   desc:"Velocity after free fall.",          example:"u=0, g=9.8, t=5\nv = 49 m/s"},
+        {name:"Buoyant Force",  formula:"Fb = rho x V x g",desc:"Archimedes principle.",             example:"rho=1000, V=0.01\nFb = 98 N"}
+      ],
+      demo:{title:"Gravity Sniper",desc:"Aim your cannon and shoot the correct answer targets. The correct answer floats among wrong ones!",
+        controls:[{key:"Mouse",desc:"Aim cannon"},{key:"Click",desc:"Fire bullet"},{key:"Touch",desc:"Tap to aim and fire"}],
+        scoring:[{icon:"🎯",txt:"+20 pts for correct hit"},{icon:"💡",txt:"Fact shown after correct answer"},{icon:"❌",txt:"Wrong target = -1 life"}]}
+    },
+    10: {
+      theory:[{
+        tag:"Optics and Electricity", title:"Refraction, AC and Magnetic Effects",
+        text:"<strong>Snell's Law</strong>: n1 sin(θ1) = n2 sin(θ2). Peak voltage = Vrms x √2 ≈ 311V for 220V supply. Magnetic force on a charge: F = qvB sinθ (Lorentz force). Photoelectric effect proves light has particle nature.",
+        facts:[{e:"🔬",l:"Snell's Law",v:"n1sinθ1=n2sinθ2"},{e:"⚡",l:"Peak V",v:"Vrms x √2"},{e:"🧲",l:"Lorentz",v:"F = qvBsinθ"},{e:"⚛",l:"Photoelectric",v:"E = hf"}]
+      }],
+      equations:[
+        {name:"Snell's Law",    formula:"n1 sinθ1 = n2 sinθ2", desc:"Light bending at a boundary.",         example:"n=1.5, glass to air\nθ bends outward"},
+        {name:"Mirror Formula", formula:"1/v + 1/u = 1/f",     desc:"Object, image distance and focal.",    example:"f=20, u=60\nv = 30 cm real"},
+        {name:"Lorentz Force",  formula:"F = q x v x B x sinθ",desc:"Force on moving charge in B field.",  example:"q=1e, v=1e6, B=0.1T\nF = 1.6e-14 N"},
+        {name:"Peak Voltage",   formula:"V0 = Vrms x √2",       desc:"Peak AC voltage from RMS.",           example:"Vrms=220V\nV0 = 311 V"}
+      ],
+      demo:{title:"Particle Collider",desc:"Particles orbit the glowing ring. Tap the CORRECT particle to fire a beam and destroy it!",
+        controls:[{key:"Click",desc:"Tap the <strong>correct</strong> orbiting particle"},{key:"Touch",desc:"Same on mobile"},{key:"Watch",desc:"Read the label before tapping"}],
+        scoring:[{icon:"⚛",txt:"<strong>+30 pts</strong> per correct collision"},{icon:"🛡",txt:"Wrong = shield flicker, -1 life"},{icon:"💡",txt:"Fact shown after every hit"}]}
+    },
+    11: {
+      theory:[{
+        tag:"Thermodynamics and SHM", title:"Laws of Thermodynamics and Oscillations",
+        text:"<strong>First Law</strong>: ΔU = Q - W (energy is conserved). An <strong>adiabatic</strong> process has no heat exchange (Q=0). In SHM, acceleration a = -ω²x, always toward equilibrium. Young's modulus E = stress / strain.",
+        facts:[{e:"🌡",l:"First Law",v:"ΔU = Q - W"},{e:"🌀",l:"SHM Acc",v:"a = -ω²x"},{e:"🔄",l:"Adiabatic",v:"Q = 0"},{e:"🔧",l:"Young Mod",v:"E = σ/ε"}]
+      }],
+      equations:[
+        {name:"First Law",     formula:"ΔU = Q - W",       desc:"Internal energy change.",          example:"Q=50J, W=30J\nΔU = 20 J"},
+        {name:"SHM",           formula:"a = -ω² x",        desc:"Simple harmonic acceleration.",    example:"ω=2, x=5\na = -20 m/s2"},
+        {name:"Bernoulli",     formula:"P + 0.5 x rho x v2 = const",desc:"Faster fluid = lower pressure.", example:"Explains aeroplane lift"},
+        {name:"Torque",        formula:"τ = r x F",        desc:"Rotational force.",                example:"r=0.5m, F=20N\nτ = 10 Nm"}
+      ],
+      demo:{title:"Particle Collider (Advanced)",desc:"Faster orbit speed. React quickly to tap the correct orbiting particle!",
+        controls:[{key:"Click",desc:"Tap the correct particle"},{key:"Fast",desc:"Particles orbit faster at Grade 11"},{key:"Watch",desc:"More particles per round"}],
+        scoring:[{icon:"⚛",txt:"+30 pts per correct collision"},{icon:"⚡",txt:"Orbit speed increases each round"},{icon:"❌",txt:"Wrong tap = -1 life"}]}
+    },
+    12: {
+      theory:[{
+        tag:"Quantum Physics", title:"Quantum, Nuclear and Semiconductors",
+        text:"De Broglie wavelength: λ = h/mv. Mass-energy equivalence: E = mc². Nuclear stability peaks at Iron-56 (~8.8 MeV/nucleon). Boron-doped semiconductor = p-type (holes); Phosphorus-doped = n-type (electrons).",
+        facts:[{e:"⚛",l:"De Broglie",v:"λ = h/mv"},{e:"💥",l:"E = mc2",v:"Mass-energy"},{e:"🔋",l:"p-type",v:"Boron doped"},{e:"☢",l:"Fe-56",v:"Most stable"}]
+      }],
+      equations:[
+        {name:"De Broglie",   formula:"λ = h / (m x v)",       desc:"Wave-particle duality of matter.",  example:"m=9.1e-31, v=1e6\nλ = 7.2e-10 m"},
+        {name:"Mass-Energy",  formula:"E = m x c²",            desc:"Energy equivalent of mass.",         example:"Δm=1u\nE = 1.49e-10 J"},
+        {name:"Half-Life",    formula:"N = N0 x (0.5)^(t/T)",  desc:"Radioactive decay formula.",         example:"U-238: T = 4.5 Gyr"},
+        {name:"NAND Gate",    formula:"Y = NOT(A AND B)",       desc:"NAND output logic.",                  example:"A=1,B=1 → Y=0\nAll else → Y=1"}
+      ],
+      demo:{title:"Expert Particle Collider",desc:"Maximum speed, maximum challenge. Fastest particles, most complex questions. Only the best survive!",
+        controls:[{key:"Click",desc:"Tap the correct orbiting particle"},{key:"⚡",desc:"Particles orbit at maximum speed"},{key:"💡",desc:"Facts teach after each hit"}],
+        scoring:[{icon:"⚛",txt:"+30 pts per collision"},{icon:"🏆",txt:"6 questions for full score"},{icon:"❌",txt:"Wrong = -1 life"}]}
+    }
+  },
+
+  chemistry: {
+    6: {
+      theory:[{
+        tag:"Mixtures", title:"Solutions, Acids and Bases",
+        text:"A <strong>solution</strong> is a homogeneous mixture (e.g. salt water). <strong>Acids</strong> taste sour, turn litmus red, have pH less than 7. <strong>Bases</strong> feel slippery, turn litmus blue, pH greater than 7. Neutralisation: Acid + Base gives Salt + Water.",
+        facts:[{e:"🍋",l:"Acid pH",v:"less than 7"},{e:"🧼",l:"Base pH",v:"greater than 7"},{e:"💧",l:"Neutral pH",v:"= 7"},{e:"⚗",l:"Neutralisation",v:"A+B = Salt+H2O"}]
+      }],
+      equations:[
+        {name:"Neutralisation",    formula:"Acid + Base = Salt + H2O",      desc:"Classic neutralisation reaction.",  example:"HCl + NaOH =\nNaCl + H2O"},
+        {name:"pH Scale",          formula:"pH = -log[H+]",                 desc:"Measure of acidity.",                example:"[H+]=1e-3\npH = 3 (acidic)"},
+        {name:"Salt Formation",    formula:"Acid + Metal = Salt + H2",      desc:"Metal reacts with acid.",            example:"Zn + H2SO4 =\nZnSO4 + H2"},
+        {name:"Concentration",     formula:"C = mass / volume",             desc:"Amount of solute in solution.",      example:"10g in 100mL\n= 0.1 g/mL"}
+      ],
+      demo:{title:"Potion Lab",desc:"Drag chemical bottles into the beaker to complete each reaction. Match all required ingredients!",
+        controls:[{key:"Drag",desc:"<strong>Drag a bottle</strong> from the side"},{key:"Drop",desc:"<strong>Drop onto</strong> the central beaker"},{key:"Touch",desc:"Touch-drag on mobile"}],
+        scoring:[{icon:"⚗",txt:"<strong>+35 pts</strong> per completed reaction"},{icon:"✓",txt:"Ingredient chips show progress"},{icon:"❌",txt:"Wrong ingredient = smoke + -1 life"}]}
+    },
+    7: {
+      theory:[{
+        tag:"Atoms", title:"Atoms, Elements and Molecules",
+        text:"An <strong>atom</strong> has a nucleus (protons + neutrons) surrounded by electrons. Atomic number Z = number of protons. Mass number A = protons + neutrons. Elements are pure substances made of one type of atom.",
+        facts:[{e:"⚛",l:"Atomic No.",v:"No. of protons"},{e:"🔢",l:"Mass No.",v:"p + n"},{e:"⚡",l:"Electrons",v:"Orbit nucleus"},{e:"🧪",l:"H2O",v:"2H + 1O"}]
+      }],
+      equations:[
+        {name:"Atomic Number",  formula:"Z = number of protons",   desc:"Unique ID for each element.",    example:"Na: Z=11\n11 protons"},
+        {name:"Mass Number",    formula:"A = protons + neutrons",   desc:"Total particles in nucleus.",    example:"Na: A=23\n23-11=12 neutrons"},
+        {name:"Electron Shells",formula:"Shell capacity: 2, 8, 18",desc:"Max electrons per shell.",       example:"Na: 2, 8, 1\nGroup 1"},
+        {name:"Valency",        formula:"Valency = 8 - group no.",  desc:"Combining power of an atom.",   example:"Cl: 8-7=1\nvalency = 1"}
+      ],
+      demo:{title:"Potion Lab (Atoms)",desc:"Build molecules by dragging the correct atomic components into the beaker. Match protons, electrons and atoms!",
+        controls:[{key:"Drag",desc:"Drag atomic components"},{key:"Drop",desc:"Drop onto beaker"},{key:"Touch",desc:"Touch-drag on mobile"}],
+        scoring:[{icon:"⚗",txt:"+35 pts per built molecule"},{icon:"✓",txt:"Ingredient chips track progress"},{icon:"❌",txt:"Wrong component = -1 life"}]}
+    },
+    8: {
+      theory:[{
+        tag:"Periodic Table", title:"Groups, Periods and Element Properties",
+        text:"The <strong>periodic table</strong> arranges elements by atomic number. Groups (columns) share properties. Alkali metals (Group 1) are highly reactive. Noble gases (Group 18) are inert. Halogens (Group 17) are very reactive non-metals.",
+        facts:[{e:"🔬",l:"Group 1",v:"Alkali Metals"},{e:"💨",l:"Group 18",v:"Noble Gases"},{e:"⚡",l:"Group 17",v:"Halogens"},{e:"🔩",l:"Periods",v:"Rows: Z increases"}]
+      }],
+      equations:[
+        {name:"Atomic Number", formula:"Z = no. of protons",      desc:"Unique identifier for each element.", example:"Na: Z=11, Period 3"},
+        {name:"Mass Number",   formula:"A = p + n",               desc:"Protons plus neutrons in nucleus.",    example:"Na: A=23, 12 neutrons"},
+        {name:"Electron Config",formula:"2, 8, 8, 18...",         desc:"Shell filling rule.",                  example:"Na: 2,8,1 = Group 1"},
+        {name:"Valency",       formula:"= 8 - group number",      desc:"Valency for non-metals.",              example:"Cl: 8-7=1, valency=1"}
+      ],
+      demo:{title:"Periodic Table Spy Heist",desc:"A spotlight sweeps the periodic table. Move your spy cursor to the CORRECT element WITHOUT touching the spotlight beam!",
+        controls:[{key:"Mouse",desc:"<strong>Move the spy cursor</strong>"},{key:"Hover",desc:"Hover over correct element to steal it"},{key:"Touch",desc:"Drag finger carefully on mobile"}],
+        scoring:[{icon:"🕵",txt:"<strong>+30 pts</strong> per element stolen"},{icon:"🚨",txt:"Touch spotlight = ALARM! -1 life"},{icon:"💡",txt:"Fact shown after each steal"}]}
+    },
+    9: {
+      theory:[{
+        tag:"Chemical Bonds", title:"Ionic and Covalent Bonding",
+        text:"<strong>Ionic bonds</strong> form between metals and non-metals via electron transfer. <strong>Covalent bonds</strong> form between non-metals via electron sharing. Electronegativity drives bond polarity. NaCl is ionic; H2O is polar covalent.",
+        facts:[{e:"⚡",l:"Ionic",v:"Metal + Non-metal"},{e:"🤝",l:"Covalent",v:"Shared electrons"},{e:"💧",l:"H2O",v:"Polar covalent"},{e:"🧂",l:"NaCl",v:"Ionic compound"}]
+      }],
+      equations:[
+        {name:"Ionic Formation",  formula:"Metal → Metal+ + e-",       desc:"Metal loses electrons to form cation.",  example:"Na → Na+ + e-"},
+        {name:"Covalent Bond",    formula:"A:B or A-B (shared pair)",   desc:"Shared electron pair between atoms.",    example:"H:H → H2 (single bond)"},
+        {name:"Electron Transfer",formula:"X + Y → X+ Y-",             desc:"Ionic compound formation.",              example:"Na + Cl → NaCl"},
+        {name:"Valence Electrons",formula:"= Group number (for metals)", desc:"Electrons in outermost shell.",         example:"Na: Group 1 → 1 val.e"}
+      ],
+      demo:{title:"Periodic Table Spy Heist (Grade 9)",desc:"The spotlight moves faster and questions are harder. Navigate to the correct element without being caught!",
+        controls:[{key:"Mouse",desc:"Move spy cursor carefully"},{key:"Avoid",desc:"Do NOT enter the spotlight beam"},{key:"Touch",desc:"Slow precise drags on mobile"}],
+        scoring:[{icon:"🕵",txt:"+30 pts per element stolen"},{icon:"🚨",txt:"Spotlight = alarm, -1 life"},{icon:"⚡",txt:"Faster spotlight = harder challenge"}]}
+    },
+    10: {
+      theory:[{
+        tag:"Organic Chemistry", title:"Functional Groups and Carbon Compounds",
+        text:"Organic molecules are carbon-based. A <strong>functional group</strong> determines chemical behaviour. -OH = alcohol group, -COOH = carboxylic acid, -NH2 = amine. Ethanol = ethyl group + hydroxyl group.",
+        facts:[{e:"🍶",l:"-OH",v:"Alcohol group"},{e:"⚗",l:"-COOH",v:"Carboxylic acid"},{e:"🧬",l:"-NH2",v:"Amine group"},{e:"🔗",l:"Ester",v:"Acid + Alcohol"}]
+      }],
+      equations:[
+        {name:"Alcohol",          formula:"R-OH",                          desc:"Alkyl group + hydroxyl group.",        example:"CH3CH2OH = Ethanol"},
+        {name:"Carboxylic Acid",  formula:"R-COOH",                        desc:"Carboxyl group on alkyl chain.",       example:"CH3COOH = Acetic acid"},
+        {name:"Esterification",   formula:"RCOOH + R-OH → RCOOR + H2O",   desc:"Acid + alcohol gives ester + water.", example:"Produces fruity esters"},
+        {name:"Neutralisation",   formula:"RCOOH + NaOH → RCOONa + H2O", desc:"Carboxylic acid reacts with base.",    example:"Saponification (soap)"}
+      ],
+      demo:{title:"Molecule Forge",desc:"Functional group tiles sit on the conveyor belt. Drag the CORRECT group onto the highlighted slot in the molecule skeleton!",
+        controls:[{key:"Drag",desc:"<strong>Drag a group tile</strong> from the belt"},{key:"Drop",desc:"<strong>Drop onto the highlighted slot</strong>"},{key:"Touch",desc:"Touch-drag on mobile"}],
+        scoring:[{icon:"🧪",txt:"<strong>+40 pts</strong> per complete molecule"},{icon:"✓",txt:"Slots glow green when correct"},{icon:"💨",txt:"Steam burst + -1 life for wrong group"}]}
+    },
+    11: {
+      theory:[{
+        tag:"Esters and Amino Acids", title:"Organic Synthesis: Esters and Amino Acids",
+        text:"Esters form from carboxylic acids + alcohols (esterification). General formula: RCOOR. <strong>Amino acids</strong> have both -NH2 and -COOH groups. They form proteins via peptide bonds. Glycine is the simplest amino acid.",
+        facts:[{e:"🌹",l:"Esters",v:"Fruity smells"},{e:"🧬",l:"Amino Acid",v:"-NH2 + -COOH"},{e:"🔗",l:"Peptide Bond",v:"-CO-NH-"},{e:"🧪",l:"Saponification",v:"Ester + NaOH"}]
+      }],
+      equations:[
+        {name:"Ester Formation",  formula:"RCOOR + H2O (reverse hydrolysis)",desc:"Ester synthesis.",         example:"CH3COO-C2H5 = Ethyl ethanoate"},
+        {name:"Amino Acid",       formula:"H2N-CHR-COOH",                    desc:"General amino acid structure.", example:"Glycine: H2N-CH2-COOH"},
+        {name:"Peptide Bond",     formula:"-CO-NH- (amide linkage)",          desc:"Bond between amino acids.", example:"Two amino acids = dipeptide"},
+        {name:"Degree of Unsat.", formula:"= (2C + 2 - H) / 2",              desc:"Count rings and double bonds.", example:"Benzene C6H6: (14-6)/2 = 4"}
+      ],
+      demo:{title:"Advanced Molecule Forge",desc:"Build esters and amino acids with three attachment slots. Drag all groups in the correct positions!",
+        controls:[{key:"Drag",desc:"Drag functional group tile"},{key:"Drop",desc:"Drop onto correct slot (left, mid, right)"},{key:"Order",desc:"Position matters for some molecules!"}],
+        scoring:[{icon:"🧪",txt:"+40 pts per complete molecule"},{icon:"✓",txt:"All 3 slots must be filled correctly"},{icon:"💨",txt:"Wrong slot = steam + -1 life"}]}
+    },
+    12: {
+      theory:[{
+        tag:"Haloalkanes and Aromatics", title:"Haloalkanes and Aromatic Chemistry",
+        text:"<strong>Haloalkanes</strong>: alkyl group + halogen (-Cl, -Br, -F). Used as solvents and anaesthetics. <strong>Benzene</strong> (C6H6) has a delocalised electron ring. <strong>Benzaldehyde</strong> = phenyl ring + aldehyde (-CHO) group.",
+        facts:[{e:"⚗",l:"Haloalkane",v:"R-X (X=halogen)"},{e:"🌸",l:"Benzene",v:"C6H6 aromatic"},{e:"🧴",l:"Benzaldehyde",v:"Phenyl + -CHO"},{e:"💊",l:"Chloroform",v:"CHCl3 anaesthetic"}]
+      }],
+      equations:[
+        {name:"Haloalkane",    formula:"R-X (X = F, Cl, Br, I)",         desc:"Alkyl group + halogen.",              example:"C2H5Cl = Chloroethane"},
+        {name:"Benzene",       formula:"C6H6 (delocalised pi electrons)", desc:"Aromatic ring structure.",            example:"All 6 C-C bonds equal length"},
+        {name:"Benzaldehyde",  formula:"C6H5-CHO",                       desc:"Phenyl ring + aldehyde group.",       example:"Used in perfumes"},
+        {name:"Halogenation",  formula:"R-H + X2 → R-X + HX",           desc:"Free radical substitution.",          example:"CH4 + Cl2 → CH3Cl + HCl"}
+      ],
+      demo:{title:"Expert Molecule Forge",desc:"Build haloalkanes and aromatic compounds. The most advanced molecules in the game!",
+        controls:[{key:"Drag",desc:"Drag functional group tile"},{key:"Drop",desc:"Drop onto correct skeleton slot"},{key:"Read",desc:"Check molecule name carefully"}],
+        scoring:[{icon:"🧪",txt:"+40 pts per complete molecule"},{icon:"🏆",txt:"2 molecules to complete"},{icon:"💨",txt:"Wrong group = steam + -1 life"}]}
+    }
+  },
+
+  biology: {
+    6: {
+      theory:[{
+        tag:"Cell Biology", title:"Cell Organelles and Blood Cells",
+        text:"The <strong>nucleus</strong> is the control centre, containing DNA. <strong>Mitochondria</strong> produce ATP via cellular respiration. <strong>Ribosomes</strong> synthesise proteins. Plant cells have a cellulose cell wall and large central vacuole.",
+        facts:[{e:"🧬",l:"Nucleus",v:"Contains DNA"},{e:"⚡",l:"Mitochondria",v:"ATP factory"},{e:"🔩",l:"Ribosomes",v:"Make proteins"},{e:"🌿",l:"Cell Wall",v:"Plants only"}]
+      }],
+      equations:[
+        {name:"Cell Respiration",  formula:"C6H12O6 + 6O2 = 6CO2 + 6H2O + ATP", desc:"Breaking glucose for energy.",   example:"All cells do this\nfor energy"},
+        {name:"Photosynthesis",    formula:"6CO2 + 6H2O + light = C6H12O6 + 6O2",desc:"Plants making food.",            example:"Happens in\nchloroplast"},
+        {name:"ATP",               formula:"ADP + Pi + energy = ATP",             desc:"Energy currency of the cell.",   example:"36 ATP per\nglucose molecule"},
+        {name:"Blood Circulation", formula:"Heart → Arteries → Capillaries → Veins",desc:"Circulatory pathway.",       example:"O2 carried by\nhaemoglobin in RBC"}
+      ],
+      demo:{title:"WBC Defender",desc:"Pathogens rush from the right. Move your WBC up/down with arrow keys. Press Space or click to fire antibodies at the CORRECT pathogen!",
+        controls:[{key:"↑↓",desc:"Move WBC <strong>up and down</strong>"},{key:"Space",desc:"<strong>Fire antibody</strong>"},{key:"Click",desc:"Also fires antibody"}],
+        scoring:[{icon:"💉",txt:"<strong>+15 pts</strong> for correct pathogen destroyed"},{icon:"🔥",txt:"<strong>Combo</strong> builds with streak"},{icon:"❌",txt:"Pathogen reaches cell = <strong>-1 life</strong>"}]}
+    },
+    7: {
+      theory:[{
+        tag:"Nutrition and Digestion", title:"Digestion, Photosynthesis and Respiration",
+        text:"<strong>Digestion</strong> uses enzymes to break down food. Salivary amylase breaks starch into maltose. Pepsin in stomach breaks proteins (pH 2). The small intestine absorbs nutrients via villi. <strong>Photosynthesis</strong> converts CO2 + H2O + light into glucose and oxygen.",
+        facts:[{e:"👄",l:"Mouth",v:"Amylase"},{e:"🔴",l:"Stomach",v:"Pepsin (pH 2)"},{e:"🟢",l:"Chloroplast",v:"Photosynthesis"},{e:"💧",l:"Transpiration",v:"Via stomata"}]
+      }],
+      equations:[
+        {name:"Photosynthesis", formula:"6CO2 + 6H2O + light = C6H12O6 + 6O2", desc:"Plants making food from sunlight.",  example:"Only in green cells"},
+        {name:"Respiration",    formula:"C6H12O6 + 6O2 = 6CO2 + 6H2O + ATP",  desc:"Releasing energy from glucose.",     example:"All living cells"},
+        {name:"Fermentation",   formula:"Glucose = Ethanol + CO2",              desc:"Anaerobic respiration in yeast.",     example:"Used in bread and beer"},
+        {name:"Enzyme Rate",    formula:"Rate increases with temp to optimum",  desc:"Temperature and enzyme activity.",    example:"Human optimum: 37 deg C"}
+      ],
+      demo:{title:"WBC Defender",desc:"Fire antibodies at the correct biology answers. Move WBC up/down, fire with Space or click!",
+        controls:[{key:"↑↓",desc:"Move WBC up and down"},{key:"Space",desc:"Fire antibody"},{key:"Click",desc:"Also fires"}],
+        scoring:[{icon:"💉",txt:"+15 pts for correct hit"},{icon:"🔥",txt:"Combo builds with streak"},{icon:"❌",txt:"Pathogen reaches WBC = -1 life"}]}
+    },
+    8: {
+      theory:[{
+        tag:"Genetics", title:"DNA Structure and Base Pairing",
+        text:"DNA is a double helix made of nucleotides. <strong>Base pairing rules</strong>: Adenine (A) pairs with Thymine (T) via 2 hydrogen bonds. Guanine (G) pairs with Cytosine (C) via 3 hydrogen bonds. In RNA, Thymine is replaced by Uracil (U).",
+        facts:[{e:"🧬",l:"A pairs with",v:"T (2 H-bonds)"},{e:"🔬",l:"G pairs with",v:"C (3 H-bonds)"},{e:"🔵",l:"RNA: A gives",v:"U (Uracil)"},{e:"💡",l:"Double Helix",v:"Watson and Crick"}]
+      }],
+      equations:[
+        {name:"A-T Bond",       formula:"A = T (2 hydrogen bonds)",   desc:"Adenine and Thymine base pair.", example:"Template: A\nComplement: T"},
+        {name:"G-C Bond",       formula:"G = C (3 hydrogen bonds)",   desc:"Guanine and Cytosine base pair.",example:"Template: G\nComplement: C"},
+        {name:"Replication",    formula:"Template strand = complement",desc:"Each strand serves as template.", example:"5 ATGC 3\n= 3 TACG 5"},
+        {name:"Transcription",  formula:"DNA → mRNA (A→U, T→A, G→C)",desc:"RNA polymerase reads template.",   example:"A→U, T→A, G→C, C→G"}
+      ],
+      demo:{title:"DNA Helix Builder",desc:"Nucleotide bases fall from above. Move your collector left/right and catch ONLY the correct complementary base to your template!",
+        controls:[{key:"←→",desc:"Move the <strong>collector platform</strong>"},{key:"Catch",desc:"Catch the <strong>correct base</strong>"},{key:"Touch",desc:"Drag collector on mobile"}],
+        scoring:[{icon:"🧬",txt:"<strong>+20 pts</strong> per correct base pair"},{icon:"🔬",txt:"Build <strong>12 pairs</strong> to complete the helix"},{icon:"❌",txt:"Wrong base caught = MUTATION! -1 life"}]}
+    },
+    9: {
+      theory:[{
+        tag:"Plant Biology", title:"Tissues, Osmosis and Transport",
+        text:"<strong>Osmosis</strong> is movement of water from low solute concentration to high across a semi-permeable membrane. Plant <strong>xylem</strong> transports water upward; <strong>phloem</strong> transports sugars. Stomata open in light to allow gas exchange.",
+        facts:[{e:"💧",l:"Osmosis",v:"Low to high conc."},{e:"🌿",l:"Xylem",v:"Water transport"},{e:"🍬",l:"Phloem",v:"Sugar transport"},{e:"🌬",l:"Stomata",v:"Open in light"}]
+      }],
+      equations:[
+        {name:"Osmosis",        formula:"Water: low [solute] → high [solute]",desc:"Osmotic movement of water.",    example:"Raisin in water swells"},
+        {name:"Transpiration",  formula:"Rate increases with temp, light, wind",desc:"Water loss through stomata.", example:"Hot sunny day = highest rate"},
+        {name:"Base Pairing",   formula:"A-T, G-C (DNA); A-U (RNA)",          desc:"Complementary base pairs.",    example:"Template: ATGC\nmRNA: UACG"},
+        {name:"Cell Division",  formula:"Mitosis: 2n→2n  Meiosis: 2n→n",      desc:"Types of cell division.",     example:"Mitosis: growth\nMeiosis: gametes"}
+      ],
+      demo:{title:"DNA Helix Builder (RNA Mode)",desc:"Grade 9 adds RNA transcription. In RNA rounds, DNA Thymine (T) pairs with RNA Uracil (U) instead of T!",
+        controls:[{key:"←→",desc:"Move the collector platform"},{key:"Catch",desc:"Catch the correct base"},{key:"RNA",desc:"Watch for U instead of T in RNA mode!"}],
+        scoring:[{icon:"🧬",txt:"+20 pts per correct base pair"},{icon:"🔬",txt:"Build 12 pairs to complete helix"},{icon:"❌",txt:"Wrong base = MUTATION! -1 life"}]}
+    },
+    10: {
+      theory:[{
+        tag:"Ecology", title:"Food Chains and Trophic Levels",
+        text:"Energy flows through ecosystems via <strong>food chains</strong>. Trophic levels: <strong>Producers</strong> (plants/autotrophs) → Primary consumers (herbivores) → Secondary consumers → Apex predators. Only about 10% of energy transfers between levels.",
+        facts:[{e:"🌿",l:"Producers",v:"Autotrophs"},{e:"🐇",l:"Primary",v:"Herbivores"},{e:"🦊",l:"Secondary",v:"Small carnivores"},{e:"🦅",l:"Apex",v:"Top predators"}]
+      }],
+      equations:[
+        {name:"Energy Transfer",    formula:"~10% passes to next trophic level", desc:"90% lost as heat at each step.", example:"1000 kJ → 100 → 10 kJ"},
+        {name:"Primary Productivity",formula:"GPP = NPP + Respiration",         desc:"Gross = net + respiration.",     example:"Plants capture sun energy"},
+        {name:"Biomass Pyramid",    formula:"Producers > Herbivores > Carnivores",desc:"Each level has less biomass.",  example:"Inverted sometimes in ocean"},
+        {name:"Food Web",           formula:"Multiple food chains = complex web", desc:"Real ecosystems have many links.",example:"Rabbit eats grass, fox eats rabbit"}
+      ],
+      demo:{title:"Ecosystem Architect",desc:"Organism cards fall down. Drag each animal or plant to the CORRECT trophic layer band — Producers at bottom, Apex predators at top!",
+        controls:[{key:"Drag",desc:"<strong>Drag organism card</strong>"},{key:"Drop",desc:"<strong>Drop on correct layer</strong> band"},{key:"Hint",desc:"Organism cards show a hint label"}],
+        scoring:[{icon:"✅",txt:"<strong>+25 pts</strong> per correct placement"},{icon:"💡",txt:"Hint shows correct layer if wrong"},{icon:"❌",txt:"Wrong layer = snap back, -1 life"}]}
+    },
+    11: {
+      theory:[{
+        tag:"Physiology", title:"Nervous System and Hormones",
+        text:"Neurons transmit electrical impulses. A <strong>reflex arc</strong>: Receptor → Sensory neuron → Spinal cord → Motor neuron → Effector. <strong>Hormones</strong> are chemical messengers from endocrine glands. Insulin regulates blood glucose levels.",
+        facts:[{e:"⚡",l:"Nerve impulse",v:"~100 m/s"},{e:"🔄",l:"Reflex arc",v:"Involuntary"},{e:"🧪",l:"Insulin",v:"Lowers glucose"},{e:"🦋",l:"Thyroid",v:"Thyroxine"}]
+      }],
+      equations:[
+        {name:"Reflex Arc",        formula:"Stimulus → Receptor → CNS → Effector",desc:"Pathway of a reflex action.", example:"Hot surface:\nhand withdraws"},
+        {name:"Blood Glucose",     formula:"Insulin up = Blood glucose down",       desc:"Negative feedback control.", example:"After eating:\npancreas releases insulin"},
+        {name:"Kidney Filtration", formula:"Filtration → Reabsorption → Secretion",desc:"Urine formation in nephron.", example:"~180L filtered per day"},
+        {name:"Synapse",           formula:"Nerve → Neurotransmitter → Receptor",  desc:"Chemical transmission.",     example:"Acetylcholine, dopamine"}
+      ],
+      demo:{title:"Ecosystem Architect (Grade 11)",desc:"Aquatic and terrestrial organisms. More organisms, same trophic layer system. Drag each one to the correct level!",
+        controls:[{key:"Drag",desc:"Drag organism card"},{key:"Drop",desc:"Drop on correct trophic layer"},{key:"Hint",desc:"Wrong placement shows hint"}],
+        scoring:[{icon:"✅",txt:"+25 pts per correct placement"},{icon:"🌊",txt:"Includes aquatic organisms"},{icon:"❌",txt:"Wrong layer = snap back, -1 life"}]}
+    },
+    12: {
+      theory:[{
+        tag:"Biotechnology", title:"CRISPR, Ecology and Biodiversity",
+        text:"<strong>CRISPR-Cas9</strong> is a gene editing tool that cuts DNA at specific sequences. <strong>Population ecology</strong>: population size depends on birth rate, death rate, immigration and emigration. Biodiversity protects ecosystem stability.",
+        facts:[{e:"✂",l:"CRISPR",v:"Gene scissors"},{e:"📊",l:"Population",v:"N=N0+B-D+M"},{e:"🌍",l:"Biodiversity",v:"Species richness"},{e:"♻",l:"Carbon cycle",v:"CO2 and organisms"}]
+      }],
+      equations:[
+        {name:"Population Growth",  formula:"ΔN = B - D + I - E",           desc:"Births minus Deaths plus migration.",  example:"N=1000, B=100, D=80\nΔN = +20/yr"},
+        {name:"Carrying Capacity",  formula:"dN/dt = rN(K-N)/K",            desc:"Logistic growth model.",               example:"Population levels off at K"},
+        {name:"Species Diversity",  formula:"H = -sum(pi x ln(pi))",        desc:"Shannon diversity index.",             example:"Higher H = more diverse"},
+        {name:"Carbon Cycle",       formula:"Photosynthesis and Respiration", desc:"Carbon moves between organisms.",      example:"Deforestation releases CO2"}
+      ],
+      demo:{title:"Expert Ecosystem Architect",desc:"Polar bears, krill, seagrass and more! The most complex food web in the game. Place every organism in the correct trophic level!",
+        controls:[{key:"Drag",desc:"Drag organism card"},{key:"Drop",desc:"Drop on correct trophic layer"},{key:"8",desc:"All 8 organisms must be placed"}],
+        scoring:[{icon:"✅",txt:"+25 pts per correct organism"},{icon:"🏆",txt:"Place all 8 for maximum XP"},{icon:"❌",txt:"Wrong layer = snap back, -1 life"}]}
+    }
+  },
+
+  mathematics: {
+    6: {
+      theory:[{
+        tag:"Arithmetic", title:"Fractions, Percentages and Multiplication",
+        text:"A <strong>fraction</strong> represents parts of a whole (numerator / denominator). To find a <strong>percentage</strong> of a number: multiply by (p / 100). <strong>Multiplication</strong> is repeated addition and is the inverse of division.",
+        facts:[{e:"½",l:"Fraction",v:"Part of whole"},{e:"%",l:"Percentage",v:"Per 100"},{e:"×",l:"Multiply",v:"Repeated add"},{e:"÷",l:"Divide",v:"Equal groups"}]
+      }],
+      equations:[
+        {name:"Percentage",     formula:"X% of N = (X / 100) x N",  desc:"Finding a percentage of any number.",  example:"20% of 60 = 12"},
+        {name:"Fraction to %",  formula:"Fraction x 100 = %",        desc:"Convert fraction to percentage.",      example:"3/4 x 100 = 75%"},
+        {name:"Average / Mean", formula:"Mean = Sum / Count",         desc:"Sum all values and divide by count.",  example:"(4+6+8)/3 = 6"},
+        {name:"Area Rectangle", formula:"A = L x W",                  desc:"Length times width.",                  example:"L=8m, W=5m\nA = 40 m2"}
+      ],
+      demo:{title:"Ninja Blade",desc:"Maths answer bubbles float upward. Click or touch to SLASH the bubble with the correct answer!",
+        controls:[{key:"Click",desc:"<strong>Slash / pop</strong> a bubble"},{key:"Drag",desc:"<strong>Swipe</strong> to slash multiple"},{key:"Touch",desc:"Tap on mobile"}],
+        scoring:[{icon:"🥷",txt:"<strong>+10 pts</strong> per correct slash"},{icon:"🔥",txt:"<strong>Combo</strong> builds for consecutive correct answers"},{icon:"❌",txt:"Wrong bubble = shake + -1 life"}]}
+    },
+    7: {
+      theory:[{
+        tag:"Algebra", title:"Simple Equations and Square Roots",
+        text:"Solving equations: isolate the unknown variable using inverse operations. <strong>Square roots</strong>: square root of n is the number that when squared gives n. Square root of 9 = 3, 16 = 4, 25 = 5. An <strong>algebraic expression</strong> uses variables for unknowns.",
+        facts:[{e:"📐",l:"Equation",v:"Balance both sides"},{e:"√",l:"Square root",v:"Inverse of squaring"},{e:"x",l:"Variable",v:"Unknown value"},{e:"=",l:"Equals",v:"Both sides equal"}]
+      }],
+      equations:[
+        {name:"Linear Equation",   formula:"ax + b = c → x = (c-b)/a",  desc:"Solving for the unknown.",          example:"3x+2=11\nx=(11-2)/3=3"},
+        {name:"Square Root",       formula:"sqrt(a2) = a (for a ≥ 0)",   desc:"Square root of a perfect square.",  example:"sqrt(49)=7\nsqrt(81)=9"},
+        {name:"Ratio and Proportion",formula:"a/b = c/d → ad = bc",      desc:"Cross multiplication.",              example:"2/3 = x/12\nx = 8"},
+        {name:"Percentage Change", formula:"(New-Old)/Old x 100",        desc:"Percent increase or decrease.",      example:"50→60: +20%\n80→64: -20%"}
+      ],
+      demo:{title:"Ninja Blade (Algebra)",desc:"Slash the bubble with the correct answer to the algebra equation. Answer quickly before bubbles escape!",
+        controls:[{key:"Click",desc:"Slash and pop a bubble"},{key:"Drag",desc:"Swipe across to slash"},{key:"Touch",desc:"Tap on mobile"}],
+        scoring:[{icon:"🥷",txt:"+10 pts per correct slash"},{icon:"🔥",txt:"Combo builds with streak"},{icon:"❌",txt:"Wrong bubble = shake + -1 life"}]}
+    },
+    8: {
+      theory:[{
+        tag:"Geometry", title:"Pythagoras, Area and Angle Theorems",
+        text:"<strong>Pythagoras theorem</strong>: In a right triangle, c² = a² + b². The <strong>angle sum</strong> in any triangle = 180°. Interior angle of a regular polygon = (n-2) x 180 / n. Area of a circle = π x r².",
+        facts:[{e:"📐",l:"Pythagoras",v:"c2 = a2 + b2"},{e:"📏",l:"Triangle angles",v:"Sum = 180°"},{e:"⭕",l:"Circle Area",v:"π x r2"},{e:"🔷",l:"Hexagon angle",v:"120°"}]
+      }],
+      equations:[
+        {name:"Pythagoras",     formula:"c2 = a2 + b2",            desc:"Hypotenuse of right triangle.",           example:"a=3, b=4\nc = sqrt(25) = 5"},
+        {name:"Area of Circle", formula:"A = π x r2",              desc:"Area enclosed by a circle.",              example:"r=7\nA = π x 49 ≈ 154"},
+        {name:"Interior Angle", formula:"θ = (n-2) x 180 / n",    desc:"Interior angle of regular polygon.",      example:"n=6 (hexagon)\nθ = 120°"},
+        {name:"Volume of Cube", formula:"V = s3",                  desc:"Side cubed for cube volume.",             example:"s=3m\nV = 27 m3"}
+      ],
+      demo:{title:"Laser Geometry",desc:"Rotate the laser emitter at the bottom with your mouse. Aim at the correct answer target at the top, then CLICK to fire!",
+        controls:[{key:"Mouse",desc:"<strong>Move mouse</strong> to aim laser"},{key:"Click",desc:"<strong>Fire the laser</strong>"},{key:"Touch",desc:"Tap to aim and fire on mobile"}],
+        scoring:[{icon:"🎯",txt:"<strong>+25 pts</strong> for correct target hit"},{icon:"🔦",txt:"Laser bounces off walls!"},{icon:"❌",txt:"Wrong target = -1 life, try again"}]}
+    },
+    9: {
+      theory:[{
+        tag:"Algebra", title:"Quadratic Equations and Vieta Formulas",
+        text:"A <strong>quadratic equation</strong> is ax² + bx + c = 0. Solve by factoring, completing the square, or the quadratic formula. <strong>Vieta formulas</strong>: sum of roots = -b/a; product of roots = c/a.",
+        facts:[{e:"📊",l:"Quadratic",v:"ax2+bx+c=0"},{e:"∑",l:"Sum of roots",v:"-b/a"},{e:"∏",l:"Product",v:"c/a"},{e:"√",l:"Discriminant",v:"b2-4ac"}]
+      }],
+      equations:[
+        {name:"Quadratic Formula", formula:"x = (-b ± sqrt(b2-4ac)) / 2a",  desc:"Finding roots of any quadratic.", example:"x2-5x+6=0\nx=2 and x=3"},
+        {name:"Vieta Sum",         formula:"x1 + x2 = -b / a",              desc:"Sum of roots from coefficients.", example:"x2-5x+6\nsum = 5"},
+        {name:"Vieta Product",     formula:"x1 x x2 = c / a",               desc:"Product of roots.",               example:"x2-5x+6\nproduct = 6"},
+        {name:"Factoring",         formula:"ax2+bx+c = a(x-r1)(x-r2)",      desc:"Express as product of factors.",  example:"x2-5x+6\n= (x-2)(x-3)"}
+      ],
+      demo:{title:"Quadratic Cannon",desc:"Set the POWER to the correct root value using arrow keys or clicking, then press SPACE or click to fire the cannonball at the target!",
+        controls:[{key:"←→",desc:"Adjust <strong>power level</strong>"},{key:"Space",desc:"<strong>Fire the cannon</strong>"},{key:"Click",desc:"Click position sets power and fires"}],
+        scoring:[{icon:"💥",txt:"<strong>+20 pts</strong> per root target hit"},{icon:"📐",txt:"Power level = root position on x-axis"},{icon:"❌",txt:"Miss the target = try again"}]}
+    },
+    10: {
+      theory:[{
+        tag:"Coordinate Geometry", title:"Distance, Midpoint and Straight Lines",
+        text:"Distance between two points: d = sqrt((x2-x1)² + (y2-y1)²). Midpoint = ((x1+x2)/2, (y1+y2)/2). Slope = (y2-y1)/(x2-x1). For y = mx + c, m is slope and c is y-intercept.",
+        facts:[{e:"📐",l:"Distance",v:"sqrt(Δx2+Δy2)"},{e:"⚖",l:"Midpoint",v:"(avg x, avg y)"},{e:"📈",l:"Slope",v:"Δy / Δx"},{e:"🎯",l:"y=mx+c",v:"c = y-intercept"}]
+      }],
+      equations:[
+        {name:"Distance",    formula:"d = sqrt((x2-x1)2 + (y2-y1)2)", desc:"Straight-line distance between points.",  example:"(0,0) to (3,4)\nd = 5"},
+        {name:"Midpoint",    formula:"M = ((x1+x2)/2, (y1+y2)/2)",    desc:"Midpoint between two coordinates.",       example:"(2,4) and (6,8)\nM = (4,6)"},
+        {name:"log base 10", formula:"log10(10^n) = n",                desc:"Common logarithm base 10.",               example:"log10(1000) = 3"},
+        {name:"AP Sum",      formula:"Sn = n/2 x (2a + (n-1)d)",      desc:"Sum of arithmetic progression.",          example:"1+2+...+10 = 55"}
+      ],
+      demo:{title:"Mission Control",desc:"Satellite panels orbit the screen. Move the crosshair reticle with your mouse and CLICK the correct panel!",
+        controls:[{key:"Mouse",desc:"Move <strong>crosshair reticle</strong>"},{key:"Click",desc:"<strong>Click</strong> the correct panel"},{key:"Touch",desc:"Tap correct panel on mobile"}],
+        scoring:[{icon:"🎯",txt:"<strong>+25 pts</strong> per correct panel"},{icon:"🛰",txt:"Panels orbit at different speeds"},{icon:"❌",txt:"Wrong panel = removed, -1 life"}]}
+    },
+    11: {
+      theory:[{
+        tag:"Calculus", title:"Derivatives, Integrals and Limits",
+        text:"The <strong>derivative</strong> measures instantaneous rate of change. d/dx(x^n) = n x^(n-1). d/dx(sin x) = cos x. An <strong>integral</strong> finds the area under a curve. The integral of x^n dx = x^(n+1)/(n+1) + C. Limit of sin(x)/x as x→0 = 1.",
+        facts:[{e:"📈",l:"d/dx(x^n)",v:"n x^(n-1)"},{e:"∫",l:"Power Rule",v:"x^(n+1)/(n+1)"},{e:"🔄",l:"d/dx(sin x)",v:"cos x"},{e:"0",l:"lim sin(x)/x",v:"= 1 as x→0"}]
+      }],
+      equations:[
+        {name:"Power Rule",   formula:"d/dx(x^n) = n x^(n-1)",            desc:"Derivative of a power function.",   example:"f(x)=x3\nf'(x) = 3x2"},
+        {name:"Integration",  formula:"integral(x^n dx) = x^(n+1)/(n+1) + C", desc:"Indefinite integral of power.",example:"integral(2x dx) = x2 + C"},
+        {name:"Chain Rule",   formula:"d/dx[f(g(x))] = f'(g(x)) x g'(x)", desc:"Derivative of composite function.",example:"sin(2x) → 2cos(2x)"},
+        {name:"Determinant",  formula:"det([[a,b],[c,d]]) = ad - bc",       desc:"2x2 matrix determinant.",           example:"[[1,2],[3,4]]\ndet = 4-6 = -2"}
+      ],
+      demo:{title:"Calculus Coaster",desc:"The roller coaster approaches a GATE. Drag the answer SLIDER to the correct value and tap CHECK to open the gate before the car crashes!",
+        controls:[{key:"Drag",desc:"<strong>Drag the slider</strong> to your answer"},{key:"Check",desc:"Tap the <strong>CHECK button</strong>"},{key:"Quick!",desc:"Car moves toward gate continuously"}],
+        scoring:[{icon:"🎢",txt:"<strong>+30 pts</strong> per gate opened"},{icon:"⚡",txt:"<strong>Fact shown</strong> after each correct answer"},{icon:"💥",txt:"Wrong answer = CRASH! -1 life"}]}
+    },
+    12: {
+      theory:[{
+        tag:"Advanced Maths", title:"Integration, Combinations and Matrices",
+        text:"Definite integral from 0 to 1 of x² dx = [x³/3] from 0 to 1 = 1/3. Combinations: C(n,r) = n! / (r! x (n-r)!). Matrix multiplication: (m x n) times (n x p) gives m x p. Dot product A times B = 0 means vectors are perpendicular.",
+        facts:[{e:"∫",l:"integral(x2)dx",v:"= 1/3"},{e:"🎲",l:"C(5,2)",v:"= 10"},{e:"📦",l:"2x3 times 3x4",v:"= 2x4"},{e:"⊥",l:"A.B=0",v:"Perpendicular"}]
+      }],
+      equations:[
+        {name:"Definite Integral",formula:"integral from a to b of f(x)dx = F(b)-F(a)",desc:"Area under curve from a to b.",   example:"integral(x2)from0to1\n= [x3/3] = 1/3"},
+        {name:"Combinations",     formula:"C(n,r) = n! / (r! x (n-r)!)",             desc:"Choosing r items from n.",          example:"C(5,2) = 5!/(2!3!) = 10"},
+        {name:"Matrix Product",   formula:"(m x n) times (n x p) = m x p matrix",    desc:"Inner dimensions must match.",      example:"2x3 times 3x4 = 2x4 matrix"},
+        {name:"P(A union B)",     formula:"P(AuB) = P(A) + P(B) - P(A and B)",       desc:"Probability of union of two events.", example:"P(A)=0.4, P(B)=0.5\nP(AnB)=0.2 → 0.7"}
+      ],
+      demo:{title:"Advanced Calculus Coaster",desc:"Integration, matrices and probability gates. The hardest maths challenge. Drag slider precisely and check quickly!",
+        controls:[{key:"Drag",desc:"Drag the answer slider"},{key:"Check",desc:"Tap CHECK button"},{key:"Precision",desc:"Slider must be close to correct value"}],
+        scoring:[{icon:"🎢",txt:"+30 pts per gate"},{icon:"🏆",txt:"6 gates total for full score"},{icon:"💥",txt:"Wrong = crash, -1 life"}]}
+    }
+  },
+
+  python: {
+    7: {
+      theory:[{
+        tag:"Python Basics", title:"Variables, print() and input()",
+        text:"Python uses <code>print()</code> to display output and <code>input()</code> to read from the keyboard. <strong>Variables</strong> store data: numbers (int, float) and text (str). Python is <strong>case-sensitive</strong>: True is not the same as true.",
+        facts:[{e:"🖨",l:"print()",v:"Display output"},{e:"⌨",l:"input()",v:"Read keyboard"},{e:"🔢",l:"int",v:"Whole number"},{e:"📝",l:"str",v:"Text string"}]
+      }],
+      equations:[
+        {name:'print()',    formula:'print("Hello")',           desc:"Output text or variables to screen.",   example:'print("Hi")\n→ Hi'},
+        {name:'input()',    formula:'x = input("Prompt: ")',    desc:"Read user input as string.",             example:'name=input("Name?")\nprint(name)'},
+        {name:"Type Cast",  formula:"int(x), float(x), str(x)",desc:"Convert between data types.",            example:'x=int("42")\ntype(x) → int'},
+        {name:"f-string",   formula:'f"Value is {x}"',          desc:"String formatting with variables.",      example:'x=5\nf"x is {x}" → "x is 5"'}
+      ],
+      demo:{title:"Python Fill-in-Blank",desc:"Code appears with a highlighted blank. Drag the correct keyword tile from the bottom into the blank to complete the code!",
+        controls:[{key:"Drag",desc:"<strong>Drag a keyword tile</strong> from bottom"},{key:"Drop",desc:"<strong>Drop onto the blank</strong> in the code"},{key:"Touch",desc:"Touch-drag on mobile"}],
+        scoring:[{icon:"✓",txt:"<strong>+20 pts</strong> per correct keyword placed"},{icon:"💡",txt:"Fact shown after each correct answer"},{icon:"❌",txt:"Wrong keyword = shake + -1 life"}]}
+    },
+    8: {
+      theory:[{
+        tag:"Control Flow", title:"Loops, Conditions and Break/Continue",
+        text:"<code>for i in range(n)</code> loops n times (0 to n-1). <code>while condition</code> loops while true. <code>break</code> exits the loop immediately. <code>continue</code> skips to the next iteration. <code>else</code> is the alternate branch when if is False.",
+        facts:[{e:"🔄",l:"range(5)",v:"0,1,2,3,4"},{e:"⛔",l:"break",v:"Exit loop"},{e:"⏭",l:"continue",v:"Skip iteration"},{e:"🔀",l:"else",v:"If condition false"}]
+      }],
+      equations:[
+        {name:"for loop",     formula:"for i in range(n):\n    body",  desc:"Loop n times starting from 0.",    example:"for i in range(3):\n    print(i)\n→ 0,1,2"},
+        {name:"while loop",   formula:"while condition:\n    body",     desc:"Loop while condition is true.",    example:"i=0\nwhile i<5:\n    i+=1"},
+        {name:"if/elif/else", formula:"if c1:\n    ...\nelif c2:\n    ...\nelse:\n    ...", desc:"Multi-branch conditional.", example:"Checks conditions\nin order top to bottom"},
+        {name:"break",        formula:"for x in items:\n    if done: break",desc:"Exit loop early.",              example:"Stops when\ntarget is found"}
+      ],
+      demo:{title:"Python Fill-in-Blank (Loops)",desc:"More complex code with loops and conditions. Drag the correct keyword into the blank!",
+        controls:[{key:"Drag",desc:"Drag a keyword tile"},{key:"Drop",desc:"Drop onto the blank"},{key:"Read",desc:"Read the whole code first"}],
+        scoring:[{icon:"✓",txt:"+20 pts per correct keyword"},{icon:"💡",txt:"Fact shown after answer"},{icon:"❌",txt:"Wrong keyword = -1 life"}]}
+    },
+    9: {
+      theory:[{
+        tag:"Functions", title:"Functions, Lists and Dictionaries",
+        text:"A Python <strong>function</strong> is defined with <code>def</code> and called by name. A <strong>list</strong> stores multiple values: [1,2,3]. A <strong>dictionary</strong> stores key-value pairs. Scope: variables inside a function are local unless declared <code>global</code>.",
+        facts:[{e:"🔧",l:"def",v:"Define function"},{e:"📋",l:"list",v:"Ordered sequence"},{e:"📚",l:"dict",v:"Key-value pairs"},{e:"🌐",l:"global",v:"Outer scope"}]
+      }],
+      equations:[
+        {name:"Function",      formula:"def name(params):\n    return value",  desc:"Define and return from a function.",  example:"def add(a,b):\n    return a+b"},
+        {name:"List Access",   formula:"list[index]  # 0-indexed",              desc:"Access element by position.",         example:"nums=[10,20,30]\nnums[1] → 20"},
+        {name:"Dict Access",   formula:"dict[key]  # or dict.get(key)",         desc:"Access value by key.",                example:"d={a:1}\nd[a] → 1"},
+        {name:"Global Scope",  formula:"global x  # inside function",           desc:"Modify outer variable inside function.", example:"total=0\ndef add(x):\n    global total\n    total+=x"}
+      ],
+      demo:{title:"Debug Hunt",desc:"Buggy code is shown with the error line highlighted in red. Drag the correct fix tile from the bottom onto the highlighted bug line!",
+        controls:[{key:"Drag",desc:"Drag a fix tile from the bottom"},{key:"Drop",desc:"<strong>Drop onto the red bug line</strong>"},{key:"Read",desc:"Read the bug carefully first!"}],
+        scoring:[{icon:"🐛",txt:"<strong>+25 pts</strong> for correct bug fix"},{icon:"📚",txt:"Fact explains the fix"},{icon:"❌",txt:"Wrong fix = snap back, -1 life"}]}
+    },
+    10: {
+      theory:[{
+        tag:"OOP", title:"Classes, Inheritance and Modules",
+        text:"A <strong>class</strong> is a blueprint for objects. <code>__init__</code> is the constructor. <code>self</code> refers to the current instance. <strong>Inheritance</strong>: a child class extends a parent. <code>import module</code> loads external code.",
+        facts:[{e:"🏗",l:"class",v:"Blueprint"},{e:"🔨",l:"__init__",v:"Constructor"},{e:"👨‍👩‍👦",l:"Inheritance",v:"Extends parent"},{e:"📦",l:"import",v:"Load module"}]
+      }],
+      equations:[
+        {name:"Class",        formula:"class Dog:\n    def __init__(self,n):\n        self.name = n",desc:"Basic class with constructor.", example:"d = Dog('Rex')\nd.name → 'Rex'"},
+        {name:"Inheritance",  formula:"class Puppy(Dog):\n    pass",           desc:"Child class inherits parent.",       example:"Puppy has all\nDog methods"},
+        {name:"Method",       formula:"def method(self, arg):\n    return result",desc:"Function inside a class.",         example:"def bark(self):\n    return 'Woof'"},
+        {name:"Import",       formula:"import module\nfrom mod import func",    desc:"Loading external code.",             example:"import math\nmath.sqrt(16) → 4"}
+      ],
+      demo:{title:"Debug Hunt (OOP)",desc:"Fix OOP bugs such as missing constructors, wrong scope and mutable defaults. Drag the fix onto the red bug line!",
+        controls:[{key:"Drag",desc:"Drag fix tile"},{key:"Drop",desc:"Drop onto red bug line"},{key:"OOP",desc:"Understand class structure!"}],
+        scoring:[{icon:"🐛",txt:"+25 pts per correct fix"},{icon:"📚",txt:"Fact explains OOP concept"},{icon:"❌",txt:"Wrong fix = -1 life"}]}
+    },
+    11: {
+      theory:[{
+        tag:"Algorithms", title:"Recursion, Sorting and Big-O",
+        text:"<strong>Recursion</strong> is when a function calls itself with a smaller input. Always needs a base case to stop. <strong>Bubble sort</strong> O(n²): compare adjacent elements, swap if out of order. <strong>Big-O notation</strong> describes worst-case time complexity.",
+        facts:[{e:"🌀",l:"Recursion",v:"Calls itself"},{e:"🫧",l:"Bubble Sort",v:"O(n2)"},{e:"⚡",l:"Binary Search",v:"O(log n)"},{e:"📊",l:"Big-O",v:"Worst case"}]
+      }],
+      equations:[
+        {name:"Fibonacci",          formula:"fib(n) = fib(n-1) + fib(n-2)",       desc:"Classic recursive sequence.",     example:"fib(0)=0, fib(1)=1\nfib(5) = 5"},
+        {name:"Factorial",          formula:"fact(n) = n x fact(n-1), base: 0!=1",desc:"n! recursive definition.",         example:"fact(5) = 120"},
+        {name:"Big-O Order",        formula:"O(1) < O(log n) < O(n) < O(n2)",     desc:"Complexity order best to worst.", example:"Binary search: O(log n)\nBubble sort: O(n2)"},
+        {name:"List Comprehension", formula:"[expr for x in iterable if cond]",    desc:"Pythonic one-liner list creation.",example:"[x for x in range(10)\n if x%2==0] → evens"}
+      ],
+      demo:{title:"Code Block Drag",desc:"Scrambled code blocks appear at the top. Drag the CORRECT blocks to the numbered slots below in the RIGHT ORDER, then tap CHECK!",
+        controls:[{key:"Drag",desc:"Drag a code block down"},{key:"Drop",desc:"Drop into a numbered slot"},{key:"Check",desc:"Tap CHECK to validate"}],
+        scoring:[{icon:"🧩",txt:"<strong>+40 pts</strong> per correct puzzle"},{icon:"💡",txt:"Hint shown at the bottom"},{icon:"❌",txt:"Wrong order or blocks = -1 life"}]}
+    },
+    12: {
+      theory:[{
+        tag:"Advanced Python", title:"NumPy, Data Structures and AI Concepts",
+        text:"<strong>NumPy</strong> is a Python library for numerical computation. Arrays are faster than lists for maths. <strong>Binary search</strong> requires a sorted array and runs in O(log n). <strong>Machine learning</strong> uses patterns in data to make predictions.",
+        facts:[{e:"🔢",l:"NumPy",v:"Array maths"},{e:"🌲",l:"Decision Tree",v:"ML algorithm"},{e:"🔍",l:"Binary search",v:"O(log n)"},{e:"📊",l:"Gradient descent",v:"Optimisation"}]
+      }],
+      equations:[
+        {name:"NumPy Array",        formula:"arr = np.array([1,2,3])",              desc:"Create a NumPy array.",             example:"arr.mean() → 2.0\narr.sum() → 6"},
+        {name:"List Comprehension", formula:"[f(x) for x in data]",                desc:"Fast data transformation.",          example:"[x**2 for x in arr]\n→ [1,4,9]"},
+        {name:"Bubble Sort",        formula:"for i in range(n-1):\n  for j in range(n-i-1):", desc:"O(n2) sorting algorithm.", example:"Swap adjacent\nif out of order"},
+        {name:"Big-O Ranking",      formula:"O(1) < O(log n) < O(n) < O(n log n) < O(n2)", desc:"Complexity ranking.",       example:"NumPy ops: O(n)\nBubble sort: O(n2)"}
+      ],
+      demo:{title:"Expert Code Block Drag",desc:"Recursive Fibonacci, NumPy operations and bubble sort. Arrange the correct code blocks in the right order!",
+        controls:[{key:"Drag",desc:"Drag code blocks into slots"},{key:"Drop",desc:"Drop in numbered order"},{key:"Check",desc:"Tap CHECK to validate"}],
+        scoring:[{icon:"🧩",txt:"+40 pts per correct puzzle"},{icon:"🏆",txt:"3 puzzles for full score"},{icon:"❌",txt:"Wrong order = -1 life"}]}
+    }
+  },
+
+  java: {
+    6: {
+      theory:[{
+        tag:"Java Basics", title:"Variables, Data Types and Output",
+        text:"Java is a <strong>strongly typed</strong> language — every variable must have a declared type. <code>int</code> stores whole numbers, <code>double</code> stores decimals, <code>String</code> stores text, <code>boolean</code> stores true/false. Use <code>System.out.println()</code> to display output. Java programs always start from the <code>main</code> method.",
+        facts:[{e:"🔢",l:"int",v:"Whole numbers"},{e:"📝",l:"String",v:"Text in quotes"},{e:"✅",l:"boolean",v:"true or false"},{e:"🖨",l:"println()",v:"Print + newline"}]
+      }],
+      equations:[
+        {name:"Variable Declaration", formula:"int x = 5;",                         desc:"Declare and assign an integer variable.",   example:"int age = 16;\ndouble pi = 3.14;"},
+        {name:"String Output",        formula:"System.out.println(\"Hello\");",      desc:"Print text to console with newline.",       example:"System.out.println(\"Hi!\");\n→ Hi!"},
+        {name:"Arithmetic",           formula:"+ - * / % (modulo)",                  desc:"Basic arithmetic operators.",               example:"10 % 3 = 1\n10 / 3 = 3 (int)"},
+        {name:"Type Casting",         formula:"(int) 3.7 → 3",                       desc:"Convert between types explicitly.",          example:"int x = (int) 9.9;\n→ x = 9"}
+      ],
+      demo:{title:"Java Fill-in-Blank",desc:"A Java code snippet appears with a highlighted blank. Drag the correct Java token from the bottom into the blank to complete the code!",
+        controls:[{key:"Drag",desc:"Drag a Java token tile"},{key:"Drop",desc:"Drop onto the highlighted blank"},{key:"Read",desc:"Read the whole line before dragging"}],
+        scoring:[{icon:"✓",txt:"+20 pts per correct token"},{icon:"💡",txt:"Fact explains the concept"},{icon:"❌",txt:"Wrong token = shake + -1 life"}]}
+    },
+    7: {
+      theory:[{
+        tag:"Control Flow", title:"if/else, for Loops and while Loops",
+        text:"Java uses <code>if (condition) { }</code> for decisions and <code>else { }</code> for the alternate branch. A <code>for</code> loop has three parts: initialiser, condition, increment. A <code>while</code> loop runs as long as its condition is true. Use <code>break</code> to exit a loop early.",
+        facts:[{e:"🔀",l:"if/else",v:"Decision branch"},{e:"🔄",l:"for loop",v:"Known iterations"},{e:"⏳",l:"while",v:"Unknown iterations"},{e:"⛔",l:"break",v:"Exit loop early"}]
+      }],
+      equations:[
+        {name:"if/else",    formula:"if (x > 0) { ... } else { ... }",               desc:"Conditional branching.",             example:"if (age >= 18)\n  System.out.println(\"Adult\");"},
+        {name:"for loop",   formula:"for (int i=0; i<5; i++) { }",                   desc:"Loop with counter from 0 to 4.",     example:"for(int i=0;i<5;i++)\n  System.out.println(i);"},
+        {name:"while loop", formula:"while (condition) { body; }",                   desc:"Loop while condition is true.",      example:"int i=0;\nwhile(i<10) i++;"},
+        {name:"Arrays",     formula:"int[] arr = new int[5];",                        desc:"Declare an integer array of size 5.", example:"arr[0]=10;\narr[1]=20;"}
+      ],
+      demo:{title:"Java Fill-in-Blank (Loops)",desc:"Fill in keywords for loops and conditions. Drag the correct token — for, while, if, break — into the blank in the code!",
+        controls:[{key:"Drag",desc:"Drag a keyword tile"},{key:"Drop",desc:"Drop onto the blank"},{key:"Think",desc:"Think about which loop fits the context"}],
+        scoring:[{icon:"✓",txt:"+20 pts per correct keyword"},{icon:"💡",txt:"Fact shown after each answer"},{icon:"❌",txt:"Wrong keyword = -1 life"}]}
+    },
+    8: {
+      theory:[{
+        tag:"Methods and Arrays", title:"Methods, Parameters and Array Operations",
+        text:"A Java <strong>method</strong> is a reusable block of code. It has a return type, name, and optional parameters. <code>void</code> means no return value. <strong>Arrays</strong> store multiple values of the same type. Access elements with index (0-based). <code>arr.length</code> gives the size of the array.",
+        facts:[{e:"🔧",l:"void",v:"No return value"},{e:"↩",l:"return",v:"Return a value"},{e:"📦",l:"arr.length",v:"Array size"},{e:"0️⃣",l:"Index",v:"Starts at 0"}]
+      }],
+      equations:[
+        {name:"Method",       formula:"static int add(int a, int b) { return a + b; }",  desc:"Method with two parameters.", example:"add(3, 4) → 7"},
+        {name:"void Method",  formula:"static void greet(String name) { System.out.println(name); }", desc:"Method with no return.", example:"greet(\"Alice\") → Alice"},
+        {name:"Array Access", formula:"arr[index]  // 0-based",                              desc:"Access array element by index.", example:"int[] a={10,20,30};\na[1] → 20"},
+        {name:"Array Length", formula:"arr.length",                                           desc:"Number of elements in array.", example:"int[] x=new int[5];\nx.length → 5"}
+      ],
+      demo:{title:"Java Fill-in-Blank (Methods)",desc:"Method signatures and array operations. Fill in return types, method names, and array operations with the correct tokens!",
+        controls:[{key:"Drag",desc:"Drag token from palette"},{key:"Drop",desc:"Drop onto highlighted blank"},{key:"Scope",desc:"Check if the method is void or returns a value"}],
+        scoring:[{icon:"✓",txt:"+20 pts per correct token"},{icon:"💡",txt:"Fact explains return types"},{icon:"❌",txt:"Wrong token = -1 life"}]}
+    },
+    9: {
+      theory:[{
+        tag:"OOP Basics", title:"Classes, Objects and Constructors",
+        text:"A Java <strong>class</strong> is a blueprint. An <strong>object</strong> is an instance of a class created with <code>new</code>. The <strong>constructor</strong> is a special method called when an object is created — it has the same name as the class and no return type. <code>this</code> refers to the current object instance.",
+        facts:[{e:"🏗",l:"class",v:"Blueprint"},{e:"🆕",l:"new",v:"Create object"},{e:"🔨",l:"Constructor",v:"Same name as class"},{e:"👆",l:"this",v:"Current instance"}]
+      }],
+      equations:[
+        {name:"Class",       formula:"class Dog { String name; Dog(String n) { this.name=n; } }",  desc:"Class with field and constructor.", example:"Dog d = new Dog(\"Rex\");\nd.name → Rex"},
+        {name:"Constructor", formula:"ClassName(params) { // no return type }",                    desc:"Initialises object fields.",        example:"Dog(String n) {\n  this.name = n;\n}"},
+        {name:"new keyword", formula:"ClassName obj = new ClassName(args);",                        desc:"Creates a new object in memory.",   example:"Dog d = new Dog(\"Buddy\");"},
+        {name:"this",        formula:"this.field = parameter;",                                     desc:"Refers to current object.",         example:"this.name = name;\n// avoids name conflict"}
+      ],
+      demo:{title:"Code Race — Java Sprint",desc:"A car race track! A Java code snippet appears with an error. Four fix options scroll past — tap the CORRECT fix before it scrolls off!",
+        controls:[{key:"Tap",desc:"Tap the correct scrolling fix option"},{key:"Fast",desc:"Options scroll — be quick!"},{key:"Car",desc:"Your car moves forward for each correct answer"}],
+        scoring:[{icon:"🏎",txt:"+20 pts per correct fix"},{icon:"💨",txt:"Car speeds up with score"},{icon:"❌",txt:"Wrong option = car spins out, -1 life"}]}
+    },
+    10: {
+      theory:[{
+        tag:"Inheritance and Polymorphism", title:"Inheritance, super and Method Overriding",
+        text:"<strong>Inheritance</strong> lets a child class extend a parent using <code>extends</code>. The child inherits all public/protected members. <code>super</code> calls the parent constructor or method. <strong>Polymorphism</strong>: a child class can override a parent method with <code>@Override</code>. <code>instanceof</code> checks object type at runtime.",
+        facts:[{e:"👨‍👦",l:"extends",v:"Inherit from parent"},{e:"⬆",l:"super",v:"Call parent"},{e:"🔄",l:"@Override",v:"Redefine method"},{e:"🔍",l:"instanceof",v:"Check type"}]
+      }],
+      equations:[
+        {name:"Inheritance",  formula:"class Puppy extends Dog { // inherits all Dog fields }",    desc:"Child class extends parent.",     example:"Puppy p = new Puppy();\np.bark(); // inherited"},
+        {name:"super()",      formula:"super(args); // in child constructor",                       desc:"Call parent constructor first.",  example:"Puppy(String n) {\n  super(n);\n}"},
+        {name:"@Override",    formula:"@Override public void bark() { ... }",                       desc:"Override parent method in child.", example:"Overrides Dog.bark()\nwith custom behaviour"},
+        {name:"instanceof",   formula:"if (obj instanceof Dog) { ... }",                            desc:"Check if object is of a type.",   example:"Puppy p = new Puppy();\np instanceof Dog → true"}
+      ],
+      demo:{title:"Debug Dungeon — Java",desc:"Side-scrolling dungeon! A bug monster blocks your path. Choose the CORRECT fix sword from the options to defeat the Java bug!",
+        controls:[{key:"Tap",desc:"Tap the correct fix option"},{key:"Read",desc:"Read the bug code carefully"},{key:"Fight",desc:"Wrong fix = take damage, -1 life"}],
+        scoring:[{icon:"⚔",txt:"+25 pts per bug slain"},{icon:"💡",txt:"Fact explains the fix"},{icon:"❌",txt:"Wrong fix = -1 life"}]}
+    },
+    11: {
+      theory:[{
+        tag:"Collections and Generics", title:"ArrayList, HashMap and Generic Types",
+        text:"<strong>ArrayList</strong> is a resizable array: <code>ArrayList&lt;Integer&gt;</code>. Use <code>add()</code>, <code>get(index)</code>, <code>size()</code>. <strong>HashMap</strong> stores key-value pairs: <code>HashMap&lt;String, Integer&gt;</code>. Use <code>put(key, val)</code>, <code>get(key)</code>. Java <strong>generics</strong> use wrapper types — <code>Integer</code> not <code>int</code>, <code>Double</code> not <code>double</code>.",
+        facts:[{e:"📋",l:"ArrayList",v:"Resizable array"},{e:"🗺",l:"HashMap",v:"Key-value store"},{e:"📦",l:"Integer",v:"int wrapper class"},{e:"🔠",l:"Generics",v:"Type parameters"}]
+      }],
+      equations:[
+        {name:"ArrayList",  formula:"ArrayList<Integer> list = new ArrayList<>(); list.add(10);",  desc:"Dynamic array with generics.", example:"list.add(5);\nlist.size() → 1"},
+        {name:"HashMap",    formula:"HashMap<String,Integer> map = new HashMap<>(); map.put(\"a\",1);", desc:"Key-value pairs store.", example:"map.get(\"a\") → 1"},
+        {name:"For-each",   formula:"for (Integer n : list) { System.out.println(n); }",            desc:"Enhanced for loop over collection.", example:"Prints each element"},
+        {name:"Sorting",    formula:"Collections.sort(list);",                                       desc:"Sort ArrayList in ascending order.", example:"[3,1,2] → [1,2,3]"}
+      ],
+      demo:{title:"Java Tower Defense",desc:"Buggy Java snippets march along a path. Select and place FIX TOWERS on the map — each tower targets a specific bug type. Correct placement destroys bugs!",
+        controls:[{key:"Select",desc:"Click a tower type from the palette"},{key:"Place",desc:"Click on the map (not on path) to place it"},{key:"Range",desc:"Tower attacks bugs within its range circle"}],
+        scoring:[{icon:"🏰",txt:"+20 pts per bug destroyed"},{icon:"🎯",txt:"Match tower type to bug type"},{icon:"❌",txt:"Bug reaches end = -1 life"}]}
+    },
+    12: {
+      theory:[{
+        tag:"Advanced Java", title:"Exception Handling, File I/O and Lambdas",
+        text:"<strong>Exception handling</strong>: <code>try { } catch (Exception e) { }</code> handles runtime errors. <strong>File I/O</strong>: use <code>FileReader</code> and <code>BufferedReader</code> to read files. <strong>Lambda expressions</strong>: <code>(x) -&gt; x * 2</code> are anonymous functions introduced in Java 8. <code>Stream API</code> enables functional-style operations on collections.",
+        facts:[{e:"🛡",l:"try/catch",v:"Handle exceptions"},{e:"📁",l:"FileReader",v:"Read files"},{e:"λ",l:"Lambda",v:"(x) -> x*2"},{e:"🌊",l:"Stream API",v:"Functional ops"}]
+      }],
+      equations:[
+        {name:"try/catch",   formula:"try { int x=1/0; } catch (ArithmeticException e) { System.out.println(e); }", desc:"Catch runtime exceptions.", example:"Prevents app crash\non division by zero"},
+        {name:"Lambda",      formula:"(params) -> expression",                                                        desc:"Anonymous function syntax.", example:"(x) -> x * 2\n(a,b) -> a + b"},
+        {name:"Stream",      formula:"list.stream().filter(x -> x>0).collect(...)",                                   desc:"Functional pipeline on collections.", example:"Filter, map,\nreduce operations"},
+        {name:"throws",      formula:"void method() throws IOException { ... }",                                      desc:"Declare checked exceptions.", example:"readFile() must\ndeclare IOException"}
+      ],
+      demo:{title:"Compile and Run — Java",desc:"A Java program executes step by step in a terminal. It CRASHES mid-execution! Pick the correct fix from 4 options before the countdown hits zero!",
+        controls:[{key:"Watch",desc:"Watch the terminal execute line by line"},{key:"Crash",desc:"When it crashes — read the error type"},{key:"Fix",desc:"Tap the correct fix before countdown ends"}],
+        scoring:[{icon:"🖥",txt:"+30 pts per correct fix"},{icon:"⏰",txt:"8 second countdown after crash"},{icon:"❌",txt:"Wrong fix or timeout = -1 life"}]}
+    }
+  },
+
+  html: {
+    6: {
+      theory:[{
+        tag:"HTML Basics", title:"What is HTML? Tags, Elements and Structure",
+        text:"<strong>HTML</strong> (HyperText Markup Language) is the skeleton of every webpage. It uses <strong>tags</strong> wrapped in angle brackets: <code>&lt;tagname&gt;</code>. Tags usually come in pairs — an opening tag and a closing tag with a slash: <code>&lt;/tagname&gt;</code>. Everything between them is the <strong>element content</strong>. <code>&lt;h1&gt;</code> is the largest heading; <code>&lt;p&gt;</code> is a paragraph.",
+        facts:[{e:"🏷",l:"Tag",v:"<tagname>"},{e:"📄",l:"Element",v:"Open + content + close"},{e:"H1",l:"Heading",v:"Biggest heading"},{e:"¶",l:"<p>",v:"Paragraph"}]
+      }],
+      equations:[
+        {name:"HTML Structure", formula:"<!DOCTYPE html> <html> <body> content </body> </html>",  desc:"Minimal valid HTML page.",         example:"Every webpage\nstarts with this"},
+        {name:"Heading",        formula:"<h1>Big Title</h1>",                                      desc:"Largest heading — h1 to h6.",      example:"<h1> biggest\n<h6> smallest"},
+        {name:"Paragraph",      formula:"<p>Some text here.</p>",                                  desc:"Block of text content.",           example:"<p>Hello World</p>"},
+        {name:"Closing Tag",    formula:"</tagname>  // note the forward slash",                   desc:"Every opening tag needs a close.", example:"<h1>Title</h1>\nNOT <h1>Title<h1>"}
+      ],
+      demo:{title:"HTML Architect",desc:"A target webpage preview is shown on the right. Drag HTML tag tiles into the correct slots on the left. The live preview updates as you build — match the target!",
+        controls:[{key:"Drag",desc:"Drag an HTML tag tile"},{key:"Drop",desc:"Drop onto the correct slot"},{key:"Preview",desc:"Watch the live preview update instantly"}],
+        scoring:[{icon:"🌐",txt:"+35 pts per completed page"},{icon:"👁",txt:"Preview shows your HTML rendered"},{icon:"❌",txt:"Wrong tag = -1 life"}]}
+    },
+    7: {
+      theory:[{
+        tag:"Links, Images and Lists", title:"Anchor Tags, img and ul/ol Lists",
+        text:"<strong>Links</strong> use the <code>&lt;a&gt;</code> tag with an <code>href</code> attribute pointing to the destination URL. <strong>Images</strong> use a self-closing <code>&lt;img&gt;</code> tag with <code>src</code> for the image path and <code>alt</code> for accessibility. <strong>Lists</strong>: <code>&lt;ul&gt;</code> is unordered (bullets), <code>&lt;ol&gt;</code> is ordered (numbers). Each item uses <code>&lt;li&gt;</code>.",
+        facts:[{e:"🔗",l:"<a href>",v:"Hyperlink tag"},{e:"🖼",l:"<img src>",v:"Image (self-closing)"},{e:"•",l:"<ul>",v:"Bullet list"},{e:"1.",l:"<ol>",v:"Numbered list"}]
+      }],
+      equations:[
+        {name:"Link",      formula:"<a href=\"url\">Link text</a>",                    desc:"Hyperlink to another page.",        example:"<a href=\"page.html\">Click</a>"},
+        {name:"Image",     formula:"<img src=\"cat.png\" alt=\"A cat\">",              desc:"Self-closing image tag.",           example:"<img src=\"logo.png\"\nalt=\"Logo\">"},
+        {name:"List Item", formula:"<ul> <li>Item 1</li> <li>Item 2</li> </ul>",       desc:"Unordered list with two items.",    example:"Bullet points\nin browser"},
+        {name:"ol List",   formula:"<ol> <li>First</li> <li>Second</li> </ol>",        desc:"Ordered (numbered) list.",         example:"1. First\n2. Second"}
+      ],
+      demo:{title:"HTML Architect (Links and Lists)",desc:"Build anchor tags and lists by dragging the correct tag tiles into position. The live preview shows exactly how your HTML will look in a browser!",
+        controls:[{key:"Drag",desc:"Drag HTML tag tiles"},{key:"Drop",desc:"Drop into correct slots"},{key:"Preview",desc:"Live preview shows rendered result"}],
+        scoring:[{icon:"🌐",txt:"+35 pts per completed page"},{icon:"🔗",txt:"Links and lists preview correctly"},{icon:"❌",txt:"Wrong tag or attribute = -1 life"}]}
+    },
+    8: {
+      theory:[{
+        tag:"Divs, Classes and IDs", title:"div, span, class and id Attributes",
+        text:"<code>&lt;div&gt;</code> is a <strong>block-level</strong> container — it takes up the full width. <code>&lt;span&gt;</code> is an <strong>inline</strong> container — only as wide as its content. <code>class</code> attributes apply shared CSS styles to multiple elements. <code>id</code> attributes identify a single unique element on the page. IDs must be unique; classes can be reused.",
+        facts:[{e:"📦",l:"<div>",v:"Block container"},{e:"✏",l:"<span>",v:"Inline container"},{e:"🎨",l:"class",v:"Reusable style group"},{e:"#",l:"id",v:"Unique identifier"}]
+      }],
+      equations:[
+        {name:"div",        formula:"<div class=\"card\"> <p>Content</p> </div>",        desc:"Block container with class.",     example:"Groups elements\nfor styling"},
+        {name:"span",       formula:"<span class=\"highlight\">text</span>",              desc:"Inline container for styling.",   example:"Style part of a\nsentence differently"},
+        {name:"class attr", formula:"<p class=\"intro\">First paragraph</p>",             desc:"Assign CSS class to element.",    example:"CSS: .intro { }\ntargets all with class"},
+        {name:"id attr",    formula:"<div id=\"header\">Top bar</div>",                   desc:"Unique ID for one element.",      example:"CSS: #header { }\nJS: getElementById()"}
+      ],
+      demo:{title:"HTML Architect (Divs and Classes)",desc:"Build a structured page using divs, spans, classes and IDs. Drag tag tiles into slots and watch the live preview reflect your structure!",
+        controls:[{key:"Drag",desc:"Drag tag or attribute tiles"},{key:"Drop",desc:"Drop onto correct position"},{key:"Structure",desc:"Think about block vs inline context"}],
+        scoring:[{icon:"🌐",txt:"+35 pts per completed structure"},{icon:"📦",txt:"div and span render differently"},{icon:"❌",txt:"Wrong nesting = -1 life"}]}
+    },
+    9: {
+      theory:[{
+        tag:"CSS Basics", title:"Selectors, Properties and the Box Model",
+        text:"<strong>CSS</strong> (Cascading Style Sheets) styles HTML. Selectors target elements: <code>p</code> targets paragraphs, <code>.class</code> targets classes, <code>#id</code> targets IDs. Key properties: <code>color</code>, <code>background-color</code>, <code>font-size</code>, <code>margin</code>, <code>padding</code>. The <strong>box model</strong>: content → padding → border → margin.",
+        facts:[{e:"🎯",l:"Selector",v:"Targets HTML element"},{e:"🎨",l:"color",v:"Text colour"},{e:"📐",l:"margin",v:"Space outside border"},{e:"🔲",l:"padding",v:"Space inside border"}]
+      }],
+      equations:[
+        {name:"CSS Rule",     formula:"selector { property: value; }",                    desc:"Basic CSS syntax.",              example:"p {\n  color: red;\n}"},
+        {name:"Class Select", formula:".className { font-size: 16px; }",                  desc:"Style all elements with class.", example:".intro { color: blue; }"},
+        {name:"Box Model",    formula:"margin > border > padding > content",              desc:"Layer order from outside in.",   example:"margin: 10px adds\n10px space around element"},
+        {name:"ID Select",    formula:"#idName { background: yellow; }",                  desc:"Style single element by ID.",    example:"#header {\n  background: #333;\n}"}
+      ],
+      demo:{title:"Code Race — HTML/CSS Sprint",desc:"Fix broken HTML/CSS syntax as your car races forward! A snippet with one error appears — tap the correct fix from the scrolling options before it passes!",
+        controls:[{key:"Tap",desc:"Tap the correct fix option"},{key:"Scroll",desc:"Options scroll across screen"},{key:"Speed",desc:"More correct answers = faster car"}],
+        scoring:[{icon:"🏎",txt:"+20 pts per correct fix"},{icon:"💨",txt:"Car advances with each correct answer"},{icon:"❌",txt:"Wrong fix = car spins out, -1 life"}]}
+    },
+    10: {
+      theory:[{
+        tag:"CSS Layout", title:"Flexbox, Grid and Responsive Design",
+        text:"<strong>Flexbox</strong> arranges elements in a row or column: <code>display: flex</code>. Use <code>justify-content</code> for main axis alignment and <code>align-items</code> for cross axis. <strong>CSS Grid</strong>: <code>display: grid</code> with <code>grid-template-columns</code>. <strong>Media queries</strong> apply styles at specific screen widths: <code>@media (max-width: 768px) { }</code>.",
+        facts:[{e:"↔",l:"flex-direction",v:"row or column"},{e:"⬛",l:"grid",v:"2D layout system"},{e:"📱",l:"@media",v:"Responsive breakpoints"},{e:"🎯",l:"justify-content",v:"Align on main axis"}]
+      }],
+      equations:[
+        {name:"Flexbox",      formula:"display: flex; justify-content: center; align-items: center;",  desc:"Centre content with flexbox.", example:"Perfect centring\nin both axes"},
+        {name:"Grid",         formula:"display: grid; grid-template-columns: 1fr 1fr 1fr;",            desc:"3-column equal grid.",         example:"Creates 3 equal\ncolumn layout"},
+        {name:"Media Query",  formula:"@media (max-width: 768px) { .class { font-size: 12px; } }",     desc:"Style for small screens.",     example:"Tablet/phone\nresponsive layout"},
+        {name:"gap",          formula:"gap: 16px;  /* grid and flex */",                                desc:"Space between grid/flex items.", example:"gap: 1rem adds\nspacing between cards"}
+      ],
+      demo:{title:"Code Race — HTML/CSS Layout Sprint",desc:"Fix flexbox, grid and media query errors in a car race! Tap the correct fix as options scroll past — your car races ahead with each correct answer!",
+        controls:[{key:"Tap",desc:"Tap scrolling fix option"},{key:"Layout",desc:"Understand flex vs grid context"},{key:"Race",desc:"More correct = faster car"}],
+        scoring:[{icon:"🏎",txt:"+20 pts per correct fix"},{icon:"📐",txt:"Layout fixes are harder — worth more"},{icon:"❌",txt:"Wrong fix = -1 life"}]}
+    },
+    11: {
+      theory:[{
+        tag:"JavaScript and DOM", title:"JavaScript Basics and DOM Manipulation",
+        text:"<strong>JavaScript</strong> makes webpages interactive. The <strong>DOM</strong> (Document Object Model) is the browser's representation of the HTML page as a tree of objects. Use <code>document.getElementById()</code> to select elements, <code>.innerHTML</code> to change content, and <code>.addEventListener()</code> to respond to user interactions like clicks.",
+        facts:[{e:"⚡",l:"JavaScript",v:"Makes pages dynamic"},{e:"🌳",l:"DOM",v:"HTML as object tree"},{e:"🎯",l:"getElementById",v:"Select one element"},{e:"🖱",l:"addEventListener",v:"Respond to events"}]
+      }],
+      equations:[
+        {name:"Select Element",  formula:"document.getElementById(\"myId\")",                    desc:"Select element by its ID.",       example:"const btn = document\n  .getElementById('btn1');"},
+        {name:"Change Content",  formula:"element.innerHTML = \"New text\";",                    desc:"Change element HTML content.",    example:"h1.innerHTML = \"Hello!\";"},
+        {name:"Click Event",     formula:"btn.addEventListener(\"click\", function() { ... });", desc:"Run code when element is clicked.", example:"btn.addEventListener\n('click', () => alert('hi'))"},
+        {name:"querySelector",   formula:"document.querySelector(\".class\")",                  desc:"CSS selector to pick element.",   example:".querySelector('p')\ngets first <p> element"}
+      ],
+      demo:{title:"Compile and Run — HTML",desc:"A browser renders your HTML page step by step. A rendering error occurs! Pick the correct HTML fix from 4 options before the countdown reaches zero!",
+        controls:[{key:"Watch",desc:"Watch the browser render each tag"},{key:"Error",desc:"Read the render error message"},{key:"Fix",desc:"Tap the correct fix in time"}],
+        scoring:[{icon:"🌐",txt:"+30 pts per correct fix"},{icon:"⏰",txt:"8 seconds to fix after crash"},{icon:"❌",txt:"Wrong fix or timeout = -1 life"}]}
+    },
+    12: {
+      theory:[{
+        tag:"Advanced HTML/CSS", title:"Semantic HTML, Accessibility and Performance",
+        text:"<strong>Semantic HTML</strong> uses meaningful tags: <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;footer&gt;</code>. These help search engines and screen readers understand page structure. <strong>Accessibility</strong>: use <code>alt</code> on images, proper heading hierarchy, and ARIA labels. <strong>Performance</strong>: minify CSS/JS, use lazy loading for images, and optimise assets.",
+        facts:[{e:"🏷",l:"<header>",v:"Page top section"},{e:"🧭",l:"<nav>",v:"Navigation links"},{e:"📰",l:"<article>",v:"Standalone content"},{e:"♿",l:"alt text",v:"Screen reader support"}]
+      }],
+      equations:[
+        {name:"Semantic Tags",  formula:"<header> <nav> <main> <article> <aside> <footer>",             desc:"Semantic HTML5 elements.",    example:"Replace <div id='nav'>\nwith <nav>"},
+        {name:"ARIA Label",     formula:"<button aria-label=\"Close menu\">X</button>",                  desc:"Accessibility label for SR.", example:"Screen readers\nannounce aria-label"},
+        {name:"Lazy Load",      formula:"<img src=\"cat.jpg\" loading=\"lazy\" alt=\"Cat\">",             desc:"Defer offscreen image load.", example:"Images only load\nwhen scrolled into view"},
+        {name:"Meta Viewport",  formula:"<meta name=\"viewport\" content=\"width=device-width\">",       desc:"Enable responsive layout.",  example:"Required for mobile\nresponsive design"}
+      ],
+      demo:{title:"Compile and Run — Advanced HTML",desc:"Complex HTML/CSS and semantic bugs. Your page crashes during rendering! Apply the correct fix from 4 options before the 8-second countdown ends!",
+        controls:[{key:"Watch",desc:"Terminal-style render output"},{key:"Crash",desc:"Note the error type"},{key:"Fix",desc:"Tap the correct semantic or CSS fix"}],
+        scoring:[{icon:"🌐",txt:"+30 pts per correct fix"},{icon:"🏆",txt:"Harder bugs at Grade 12"},{icon:"❌",txt:"Wrong fix or timeout = -1 life"}]}
+    }
+  }
+};
+
+const topicData = (LEARN_CONTENT[SUBJECT]||LEARN_CONTENT.physics)[GRADE]
+               || (LEARN_CONTENT[SUBJECT]||LEARN_CONTENT.physics)[Object.keys(LEARN_CONTENT[SUBJECT]||LEARN_CONTENT.physics)[0]];
+const meta      = (GAME_META[SUBJECT]||GAME_META.physics)[GRADE] || (GAME_META[SUBJECT]||GAME_META.physics)[6];
+const topics    = (CURRICULUM[SUBJECT]||CURRICULUM.physics)[GRADE] || [];
+
+/* ── Populate intro ── */
+document.getElementById('subjectLabel').textContent       = cfg.label;
+document.getElementById('gradeBadgeNum').textContent      = GRADE;
+document.getElementById('missionIconDisplay').textContent = cfg.icon;
+document.getElementById('missionTitle').textContent       = `${cfg.icon} ${cfg.label} — Grade ${GRADE}`;
+document.getElementById('missionStory').textContent       = meta.story;
+document.getElementById('xpChip').textContent             = `⚡ +${meta.xp} XP Reward`;
+document.getElementById('timeChip').textContent           = `⏱ ${meta.time} Mission`;
+document.getElementById('diffChip').textContent           = `🔥 ${meta.diff}`;
+
+const topicsEl = document.getElementById('curriculumTopics');
+topics.forEach(t => {
+    const p = document.createElement('span');
+    p.className   = 'curr-topic';
+    p.textContent = t;
+    topicsEl.appendChild(p);
+});
+
+/* Intro floating particles */
+const pContainer = document.getElementById('introParticles');
+const pColors    = ['#FFD700','#FF2D9B','#00C3FF','#00F5A0','#FF8C00'];
+for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 6 + 3;
+    p.style.cssText = `width:${size}px;height:${size}px;background:${pColors[i%pColors.length]};left:${Math.random()*100}%;bottom:${Math.random()*15}%;--pdur:${(Math.random()*3+3).toFixed(1)}s;--pdelay:${(Math.random()*5).toFixed(1)}s;box-shadow:0 0 ${size*2}px ${pColors[i%pColors.length]};`;
+    pContainer.appendChild(p);
+}
+
+/* ════════════════════════════════════════
+   LEARN SCREEN RENDERING
+════════════════════════════════════════ */
+function renderLearnContent() {
+    document.getElementById('learnIcon').textContent  = cfg.icon;
+    document.getElementById('learnTitle').textContent = `${cfg.label} — Grade ${GRADE}`;
+    document.getElementById('learnSub').textContent   = `${topics.slice(0,3).join(' · ')} · ...`;
+
+    /* Theory */
+    const tc = document.getElementById('theoryContent');
+    tc.innerHTML = '';
+    (topicData.theory || []).forEach(sec => {
+        tc.innerHTML += `
+        <div class="theory-section">
+            <span class="theory-tag">${sec.tag}</span>
+            <div class="theory-title"><div class="dot"></div>${sec.title}</div>
+            <div class="theory-text">${sec.text}</div>
+            ${sec.facts && sec.facts.length ? `<div class="facts-grid">${sec.facts.map(f=>`<div class="fact-card"><div class="fact-emoji">${f.e}</div><div class="fact-label">${f.l}</div><div class="fact-value">${f.v}</div></div>`).join('')}</div>` : ''}
+        </div>`;
+    });
+
+    /* Equations */
+    const ec = document.getElementById('equationsContent');
+    ec.innerHTML = '';
+    (topicData.equations || []).forEach(eq => {
+        ec.innerHTML += `
+        <div class="eq-card">
+            <div class="eq-left">
+                <div class="eq-name">${eq.name}</div>
+                <div class="eq-formula">${eq.formula}</div>
+                <div class="eq-desc">${eq.desc}</div>
+            </div>
+            <div class="eq-example">
+                <div class="eq-example-label">Example</div>
+                <div class="eq-example-val">${eq.example.replace(/\n/g,'<br>')}</div>
+            </div>
+        </div>`;
+    });
+
+    /* Demo info */
+    const d = topicData.demo || {};
+    document.getElementById('demoGameTitle').textContent = `🎮 ${d.title || 'Game Preview'}`;
+    document.getElementById('demoGameDesc').textContent  = d.desc  || 'Get ready to play!';
+
+    const cl = document.getElementById('controlsList');
+    cl.innerHTML = (d.controls||[]).map(c=>`
+        <div class="control-item">
+            <span class="control-key">${c.key}</span>
+            <span class="control-desc">${c.desc}</span>
+        </div>`).join('');
+
+    const sr = document.getElementById('scoringRules');
+    sr.innerHTML = (d.scoring||[]).map(s=>`
+        <div class="scoring-rule">
+            <span class="rule-icon">${s.icon||'•'}</span>
+            <span class="rule-text">${s.txt||s.desc||''}</span>
+        </div>`).join('');
+
+    /* Draw demo canvas */
+    drawDemoCanvas();
+}
+
+/* ── Demo Canvas — animated game preview ── */
+let demoAnimId = null;
+function drawDemoCanvas() {
+    const canvas = document.getElementById('demoCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    cancelAnimationFrame(demoAnimId);
+
+    /* Build a simple animated illustration matching the game type */
+    let t = 0;
+    const col = cfg.demoCol;
+
+    function demoLoop() {
+        t++;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        /* Background */
+        const bg = ctx.createLinearGradient(0,0,0,canvas.height);
+        bg.addColorStop(0,'#030818'); bg.addColorStop(1,'#080020');
+        ctx.fillStyle = bg; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+        /* Draw based on subject/grade */
+        drawDemoScene(ctx, canvas, t, col);
+        demoAnimId = requestAnimationFrame(demoLoop);
+    }
+    demoLoop();
+}
+
+function drawDemoScene(ctx, canvas, t, col) {
+    const W = canvas.width, H = canvas.height;
+    const sub = SUBJECT, g = GRADE;
+
+    /* ── PHYSICS ── */
+    if (sub === 'physics' && g <= 7) {
+        /* Grade 6-7: Arcade Catcher */
+        const px = W/2 + Math.sin(t*0.03)*80, py = H - 30;
+        [0.2,0.55,0.8].forEach((fx,i) => {
+            const by = (t*1.5 + i*80) % (H+40) - 20;
+            ctx.save();
+            ctx.fillStyle = i===0?'#00C84A44':'#E7223A44';
+            ctx.strokeStyle = i===0?'#00C84A':'#E7223A';
+            ctx.lineWidth=1.5; ctx.shadowBlur=8; ctx.shadowColor=ctx.strokeStyle;
+            ctx.beginPath(); ctx.roundRect(fx*W-30,by,60,32,6); ctx.fill(); ctx.stroke();
+            ctx.font='bold 10px Outfit'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.shadowBlur=0;
+            ctx.fillText(i===0?'10 N':'5 N', fx*W, by+16); ctx.restore();
+        });
+        const pg = ctx.createLinearGradient(px-50,0,px+50,0);
+        pg.addColorStop(0,col+'88'); pg.addColorStop(0.5,col); pg.addColorStop(1,col+'88');
+        ctx.save(); ctx.shadowBlur=16; ctx.shadowColor=col; ctx.fillStyle=pg;
+        ctx.beginPath(); ctx.roundRect(px-50,py-8,100,14,5); ctx.fill(); ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,26);
+        ctx.font='bold 10px Outfit'; ctx.fillStyle='#FFD700'; ctx.textAlign='center';
+        ctx.fillText('Q: Force? m=2kg a=5m/s²', W/2, 16);
+
+    } else if (sub === 'physics' && g === 8) {
+        /* Grade 8: Circuit Builder */
+        const comps = [{icon:'🔋',x:W*0.1,col:'#FFD700'},{icon:'━',x:W*0.3,col:'#aaa'},{icon:'⬛',x:W*0.5,col:'#FF8C00'},{icon:'💡',x:W*0.7,col:'#00F5A0'}];
+        const cy = H/2;
+        ctx.save(); ctx.strokeStyle='rgba(0,195,255,0.15)'; ctx.lineWidth=20;
+        ctx.beginPath(); ctx.moveTo(W*0.05,cy); ctx.lineTo(W*0.85,cy); ctx.stroke();
+        ctx.strokeStyle='rgba(0,195,255,0.4)'; ctx.lineWidth=2; ctx.setLineDash([8,6]);
+        ctx.beginPath(); ctx.moveTo(W*0.05,cy); ctx.lineTo(W*0.85,cy); ctx.stroke(); ctx.setLineDash([]);
+        /* Animated current dot */
+        const cx2 = W*0.05 + ((t*1.8)%(W*0.8));
+        ctx.fillStyle='#FFD700'; ctx.shadowBlur=12; ctx.shadowColor='#FFD700';
+        ctx.beginPath(); ctx.arc(cx2,cy,5,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+        comps.forEach(c => {
+            ctx.fillStyle=c.col+'33'; ctx.strokeStyle=c.col; ctx.lineWidth=1.5; ctx.shadowBlur=8; ctx.shadowColor=c.col;
+            ctx.beginPath(); ctx.roundRect(c.x-22,cy-22,44,44,6); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+            ctx.font='18px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(c.icon,c.x,cy);
+        });
+        ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,22);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#00C3FF'; ctx.textAlign='center';
+        ctx.fillText('⚡ Circuit Builder — drag components to complete the circuit', W/2, 14);
+
+    } else if (sub === 'physics' && g === 9) {
+        /* Grade 9: Gravity Sniper - orbiting targets */
+        const CX=W/2, CY=H/2+10;
+        ctx.save(); ctx.strokeStyle='rgba(0,195,255,0.2)'; ctx.lineWidth=14;
+        ctx.beginPath(); ctx.arc(CX,CY,55,0,Math.PI*2); ctx.stroke();
+        ctx.strokeStyle='rgba(0,195,255,0.4)'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.arc(CX,CY,55,0,Math.PI*2); ctx.stroke();
+        [0,1,2].forEach(i => {
+            const angle = t*0.035 + i*(Math.PI*2/3);
+            const px=CX+Math.cos(angle)*55, py=CY+Math.sin(angle)*55;
+            const bcol=['#00C3FF','#FF2D9B','#FFD700'][i];
+            ctx.fillStyle=bcol+'44'; ctx.strokeStyle=bcol; ctx.lineWidth=2; ctx.shadowBlur=10; ctx.shadowColor=bcol;
+            ctx.beginPath(); ctx.arc(px,py,18,0,Math.PI*2); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+            ctx.font='bold 8px Outfit'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(['9.8','5.0','3.2'][i],px,py);
+        }); ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,22);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FFD700'; ctx.textAlign='center';
+        ctx.fillText('🎯 Gravity Sniper — shoot the correct answer target!', W/2, 14);
+
+    } else if (sub === 'physics' && g === 10) {
+        /* Grade 10: Wave Oscilloscope */
+        const OX=10,OY=20,OW=W-20,OH=H-50;
+        ctx.save(); ctx.fillStyle='rgba(0,20,10,0.7)'; ctx.strokeStyle='rgba(0,245,160,0.3)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.roundRect(OX,OY,OW,OH,6); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle='rgba(0,245,160,0.08)'; ctx.lineWidth=0.5;
+        for(let gx=OX;gx<=OX+OW;gx+=OW/6){ctx.beginPath();ctx.moveTo(gx,OY);ctx.lineTo(gx,OY+OH);ctx.stroke();}
+        for(let gy=OY;gy<=OY+OH;gy+=OH/3){ctx.beginPath();ctx.moveTo(OX,gy);ctx.lineTo(OX+OW,gy);ctx.stroke();}
+        ctx.strokeStyle='#00F5A0'; ctx.lineWidth=2.5; ctx.shadowBlur=8; ctx.shadowColor='#00F5A0';
+        ctx.beginPath();
+        for(let i=0;i<=OW;i++){const wy=OY+OH/2-50*Math.sin(2*Math.PI*2*(i/OW)+t*0.05);if(i===0)ctx.moveTo(OX+i,wy);else ctx.lineTo(OX+i,wy);}
+        ctx.stroke(); ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,18);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#00C3FF'; ctx.textAlign='center';
+        ctx.fillText('📡 Wave Oscilloscope — drag sliders to match the target wave', W/2, 12);
+
+    } else if (sub === 'physics') {
+        /* Grade 11-12: Particle Collider */
+        const CX=W/2, CY=H/2;
+        ctx.save(); ctx.strokeStyle='rgba(0,195,255,0.2)'; ctx.lineWidth=14;
+        ctx.beginPath(); ctx.arc(CX,CY,60,0,Math.PI*2); ctx.stroke();
+        ctx.strokeStyle='rgba(0,195,255,0.4)'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.arc(CX,CY,60,0,Math.PI*2); ctx.stroke();
+        [0,1,2].forEach(i=>{ const angle=t*0.04+i*(Math.PI*2/3); const px=CX+Math.cos(angle)*60,py=CY+Math.sin(angle)*60;
+            const bcol=['#00C3FF','#FF2D9B','#FFD700'][i];
+            ctx.fillStyle=bcol+'44'; ctx.strokeStyle=bcol; ctx.lineWidth=2; ctx.shadowBlur=10; ctx.shadowColor=bcol;
+            ctx.beginPath(); ctx.arc(px,py,18,0,Math.PI*2); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+            ctx.font='bold 8px Outfit'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(['hf','mc²','λ'][i],px,py);
+        });
+        const cg=ctx.createRadialGradient(CX,CY,2,CX,CY,16);
+        cg.addColorStop(0,col); cg.addColorStop(1,'transparent');
+        ctx.fillStyle=cg; ctx.beginPath(); ctx.arc(CX,CY,16,0,Math.PI*2); ctx.fill(); ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,22);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FFD700'; ctx.textAlign='center';
+        ctx.fillText('⚛ Particle Collider — tap the correct orbiting particle!', W/2, 14);
+
+    /* ── CHEMISTRY ── */
+    } else if (sub === 'chemistry' && g <= 7) {
+        /* Grade 6-7: Potion Lab */
+        const BKX=W/2-30,BKY=24,BKW=60,BKH=90;
+        ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(BKX+BKW*0.1,BKY); ctx.lineTo(BKX+BKW*0.9,BKY);
+        ctx.lineTo(BKX+BKW,BKY+BKH); ctx.lineTo(BKX,BKY+BKH); ctx.closePath(); ctx.stroke();
+        const lvl=Math.min(BKH-10,(t%120)*0.7);
+        ctx.fillStyle='rgba(0,195,255,0.5)'; ctx.fillRect(BKX,BKY+BKH-lvl,BKW,lvl); ctx.restore();
+        ['💧','🍋','🧼'].forEach((icon,i)=>{
+            const bx=20+i*(W/3),by=50+Math.sin(t*0.04+i)*5;
+            ctx.font='24px sans-serif'; ctx.textAlign='center'; ctx.fillText(icon,bx,by);
+        });
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FFD700'; ctx.textAlign='center';
+        ctx.fillText('Drag bottles → beaker to complete reaction', W/2, H-10);
+
+    } else if (sub === 'chemistry' && g <= 9) {
+        /* Grade 8-9: Spy Heist */
+        const spotlight = {x: W*0.2 + Math.sin(t*0.025)*W*0.55, y: H/2};
+        ctx.save();
+        const sg=ctx.createRadialGradient(spotlight.x,spotlight.y,0,spotlight.x,spotlight.y,55);
+        sg.addColorStop(0,'rgba(255,215,0,0.25)'); sg.addColorStop(1,'transparent');
+        ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(spotlight.x,spotlight.y,55,0,Math.PI*2); ctx.fill();
+        /* Grid of element cells */
+        const els=['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg'];
+        els.forEach((el,i)=>{ const cx2=15+i*(W/12)*0.9,cy2=H/2+Math.sin(i*0.4)*20;
+            const dist=Math.hypot(cx2-spotlight.x,cy2-spotlight.y);
+            ctx.fillStyle=dist<55?'rgba(255,215,0,0.3)':'rgba(255,255,255,0.06)';
+            ctx.strokeStyle=dist<55?'#FFD700':'rgba(255,255,255,0.15)'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.roundRect(cx2-12,cy2-12,24,24,3); ctx.fill(); ctx.stroke();
+            ctx.font='bold 8px Outfit'; ctx.fillStyle=dist<55?'#FFD700':'rgba(255,255,255,0.3)';
+            ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(el,cx2,cy2);
+        });
+        ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,18);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#00F5A0'; ctx.textAlign='center';
+        ctx.fillText('🕵 Spy Heist — navigate to correct element, avoid the spotlight!', W/2, 12);
+
+    } else if (sub === 'chemistry' && g === 10) {
+        /* Grade 10: Titration */
+        const pH = 2 + ((t*0.02)%5.5);
+        const phCol = pH<4?'#FF2D9B':pH<6.5?'#FF8C00':'#00F5A0';
+        ctx.save();
+        /* Burette drop */
+        const dropY = (t*2)%(H*0.4)+20;
+        ctx.fillStyle='rgba(0,195,255,0.8)'; ctx.shadowBlur=4; ctx.shadowColor='#00C3FF';
+        ctx.beginPath(); ctx.arc(W/2,dropY,4,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+        /* Flask */
+        ctx.fillStyle=phCol+'44'; ctx.strokeStyle=phCol; ctx.lineWidth=2; ctx.shadowBlur=10; ctx.shadowColor=phCol;
+        ctx.beginPath(); ctx.moveTo(W/2-30,H*0.55); ctx.lineTo(W/2+30,H*0.55);
+        ctx.quadraticCurveTo(W/2+50,H*0.75,W/2+20,H*0.85); ctx.lineTo(W/2-20,H*0.85);
+        ctx.quadraticCurveTo(W/2-50,H*0.75,W/2-30,H*0.55); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+        /* pH display */
+        ctx.fillStyle='rgba(0,0,0,0.8)'; ctx.strokeStyle=phCol; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.roundRect(W-80,20,70,44,8); ctx.fill(); ctx.stroke();
+        ctx.font='bold 10px Outfit'; ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.textAlign='center'; ctx.fillText('pH',W-45,34);
+        ctx.font='bold 18px Courier New'; ctx.fillStyle=phCol; ctx.fillText(pH.toFixed(1),W-45,54);
+        ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,18);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FFD700'; ctx.textAlign='center';
+        ctx.fillText('⚗️ Titration Sim — control drip rate, stop at pH 7!', W/2, 12);
+
+    } else if (sub === 'chemistry') {
+        /* Grade 11-12: Molecule Forge */
+        const groups=['—OH','—COOH','—NH₂','—CHO'];
+        const slotX=W/2, slotY=H*0.4;
+        ctx.save();
+        ctx.strokeStyle='rgba(0,245,160,0.3)'; ctx.lineWidth=1.5;
+        [[slotX-60,slotY],[slotX,slotY-30],[slotX+60,slotY]].forEach(([sx,sy],i)=>{
+            ctx.fillStyle='rgba(0,245,160,0.1)'; ctx.strokeStyle='rgba(0,245,160,0.4)'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.roundRect(sx-28,sy-14,56,28,6); ctx.fill(); ctx.stroke();
+            ctx.font='bold 9px Courier New'; ctx.fillStyle='#00F5A0'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(groups[i]||'?',sx,sy);
+        });
+        /* Floating tile */
+        const tx=W*0.15+Math.sin(t*0.04)*20, ty=H*0.7+Math.cos(t*0.03)*10;
+        ctx.fillStyle='rgba(0,195,255,0.2)'; ctx.strokeStyle='#00C3FF'; ctx.lineWidth=2;
+        ctx.shadowBlur=10; ctx.shadowColor='#00C3FF';
+        ctx.beginPath(); ctx.roundRect(tx-30,ty-14,60,28,6); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+        ctx.font='bold 9px Courier New'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('—COOH',tx,ty); ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,18);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#00F5A0'; ctx.textAlign='center';
+        ctx.fillText('🧪 Molecule Forge — drag functional groups to correct slot!', W/2, 12);
+
+    /* ── BIOLOGY ── */
+    } else if (sub === 'biology' && g <= 7) {
+        /* Grade 6-7: WBC Defender */
+        const cy2=H/2+Math.sin(t*0.04)*40;
+        ctx.save(); ctx.shadowBlur=12; ctx.shadowColor='#00F5A0';
+        ctx.strokeStyle='#00F5A0'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.arc(40,cy2,20,0,Math.PI*2); ctx.stroke(); ctx.restore();
+        ctx.font='10px Outfit'; ctx.fillStyle='#00F5A0'; ctx.textAlign='center'; ctx.fillText('WBC',40,cy2+28);
+        [0,80,160].forEach(offset=>{
+            const px2=W-((t*1.2+offset)%(W+40)),py2=40+offset/2;
+            ctx.save(); ctx.fillStyle='#FF2D9B44'; ctx.strokeStyle='#FF2D9B'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.arc(px2,py2,16,0,Math.PI*2); ctx.fill(); ctx.stroke();
+            ctx.font='14px sans-serif'; ctx.textAlign='center'; ctx.fillText('🦠',px2,py2+6); ctx.restore();
+        });
+
+    } else if (sub === 'biology' && g === 8) {
+        /* Grade 8: DNA Helix Builder */
+        const baseColors = {A:'#FF2D9B',T:'#00C3FF',G:'#00F5A0',C:'#FFD700'};
+        const pairs = [['A','T'],['G','C'],['T','A'],['C','G']];
+        pairs.forEach(([l,r],i)=>{
+            const y2=30+i*26+((t*0.8)%(pairs.length*26));
+            if(y2<10||y2>H-10) return;
+            const lc=baseColors[l],rc=baseColors[r];
+            ctx.save();
+            ctx.fillStyle=lc+'44'; ctx.strokeStyle=lc; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.roundRect(W/2-65,y2-10,40,20,4); ctx.fill(); ctx.stroke();
+            ctx.fillStyle=rc+'44'; ctx.strokeStyle=rc;
+            ctx.beginPath(); ctx.roundRect(W/2+25,y2-10,40,20,4); ctx.fill(); ctx.stroke();
+            ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.moveTo(W/2-25,y2); ctx.lineTo(W/2+25,y2); ctx.stroke();
+            ctx.font='bold 9px Outfit'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(l,W/2-45,y2); ctx.fillText(r,W/2+45,y2); ctx.restore();
+        });
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,18);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FFD700'; ctx.textAlign='center';
+        ctx.fillText('🧬 DNA Helix Builder — catch the correct complementary base!', W/2, 12);
+
+    } else if (sub === 'biology' && g === 9) {
+        /* Grade 9: Membrane Gate */
+        const MX=W*0.55;
+        ctx.save(); ctx.strokeStyle='rgba(0,245,160,0.6)'; ctx.lineWidth=10; ctx.shadowBlur=16; ctx.shadowColor='#00F5A0';
+        ctx.beginPath(); ctx.moveTo(MX,10); ctx.lineTo(MX,H-20); ctx.stroke(); ctx.shadowBlur=0;
+        /* Molecule approaching */
+        const mx2=W*0.1+((t*1.5)%(MX-W*0.1+30));
+        const molNames=['O₂','Na⁺','H₂O','Glucose'];
+        const molIdx=~~(t/80)%molNames.length;
+        ctx.fillStyle='rgba(0,195,255,0.3)'; ctx.strokeStyle='#00C3FF'; ctx.lineWidth=2;
+        ctx.shadowBlur=10; ctx.shadowColor='#00C3FF';
+        ctx.beginPath(); ctx.arc(mx2,H/2,18,0,Math.PI*2); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+        ctx.font='bold 8px Outfit'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(molNames[molIdx],mx2,H/2); ctx.restore();
+        /* Allow/Block buttons mini */
+        ctx.fillStyle='rgba(0,245,160,0.15)'; ctx.strokeStyle='#00F5A0'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.roundRect(10,H-46,80,28,6); ctx.fill(); ctx.stroke();
+        ctx.fillStyle='rgba(255,45,155,0.15)'; ctx.strokeStyle='#FF2D9B';
+        ctx.beginPath(); ctx.roundRect(W-90,H-46,80,28,6); ctx.fill(); ctx.stroke();
+        ctx.font='bold 9px Outfit'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillStyle='#00F5A0'; ctx.fillText('✅ ALLOW',50,H-32);
+        ctx.fillStyle='#FF2D9B'; ctx.fillText('🚫 BLOCK',W-50,H-32);
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,18);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FFD700'; ctx.textAlign='center';
+        ctx.fillText('🧬 Membrane Gate — ALLOW or BLOCK each molecule!', W/2, 12);
+
+    } else if (sub === 'biology' && g === 10) {
+        /* Grade 10: Ecosystem Architect */
+        const layers=['Apex','Secondary','Primary','Producers'];
+        const lCols=['#FF2D9B','#FF8C00','#FFD700','#00F5A0'];
+        layers.forEach((lyr,i)=>{
+            const ly=20+i*(H-30)/4, lh=(H-30)/4-4;
+            ctx.fillStyle=lCols[i]+'18'; ctx.strokeStyle=lCols[i]+'44'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.roundRect(8,ly,W-16,lh,4); ctx.fill(); ctx.stroke();
+            ctx.font='bold 8px Outfit'; ctx.fillStyle=lCols[i]; ctx.textAlign='left'; ctx.textBaseline='middle';
+            ctx.fillText(lyr,14,ly+lh/2);
+        });
+        /* Floating card */
+        const cx3=W*0.6+Math.sin(t*0.04)*15, cy3=H/2+Math.cos(t*0.05)*20;
+        ctx.fillStyle='rgba(0,195,255,0.2)'; ctx.strokeStyle='#00C3FF'; ctx.lineWidth=2;
+        ctx.shadowBlur=10; ctx.shadowColor='#00C3FF';
+        ctx.beginPath(); ctx.roundRect(cx3-30,cy3-14,60,28,6); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('🦊 Fox',cx3,cy3);
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,18);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#00F5A0'; ctx.textAlign='center';
+        ctx.fillText('🌿 Ecosystem Architect — drag to correct trophic layer!', W/2, 12);
+
+    } else if (sub === 'biology') {
+        /* Grade 11-12: Neuron Chain */
+        const nodePositions=[[W*0.1,H/2],[W*0.3,H/2-30],[W*0.5,H/2],[W*0.7,H/2+20],[W*0.9,H/2]];
+        const litUpTo=~~(t/40)%6;
+        nodePositions.forEach(([nx,ny],i)=>{
+            const lit=i<litUpTo;
+            ctx.save();
+            if(lit){ctx.shadowBlur=20;ctx.shadowColor='#00F5A0';}
+            ctx.fillStyle=lit?'rgba(0,245,160,0.25)':'rgba(0,195,255,0.1)';
+            ctx.strokeStyle=lit?'#00F5A0':'rgba(0,195,255,0.4)'; ctx.lineWidth=lit?2.5:1.5;
+            ctx.beginPath(); ctx.arc(nx,ny,22,0,Math.PI*2); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+            ctx.font='bold 7px Outfit'; ctx.fillStyle=lit?'#00F5A0':'rgba(255,255,255,0.4)'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(['Receptor','Sensory','Spinal','Motor','Effector'][i],nx,ny); ctx.restore();
+            if(i<nodePositions.length-1){
+                const [nx2,ny2]=nodePositions[i+1];
+                ctx.save(); ctx.strokeStyle=lit?'rgba(0,245,160,0.6)':'rgba(255,255,255,0.1)'; ctx.lineWidth=lit?2:1;
+                if(lit){ctx.shadowBlur=8;ctx.shadowColor='#00F5A0';}
+                ctx.beginPath(); ctx.moveTo(nx+22,ny); ctx.lineTo(nx2-22,ny2); ctx.stroke(); ctx.shadowBlur=0; ctx.restore();
+            }
+        });
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,18);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#00C3FF'; ctx.textAlign='center';
+        ctx.fillText('⚡ Neuron Chain — click correct neurons in sequence!', W/2, 12);
+
+    /* ── MATHEMATICS ── */
+    } else if (sub === 'mathematics' && g <= 7) {
+        /* Grade 6-7: Ninja Bubbles */
+        [0.2,0.5,0.8].forEach((fx,i)=>{
+            const by=H-(t*0.8+i*60)%(H+50);
+            const bcol=['#FF2D9B','#00C3FF','#FFD700'][i];
+            ctx.save(); ctx.fillStyle=bcol+'33'; ctx.strokeStyle=bcol; ctx.lineWidth=2; ctx.shadowBlur=10; ctx.shadowColor=bcol;
+            ctx.beginPath(); ctx.arc(fx*W,by,28,0,Math.PI*2); ctx.fill(); ctx.stroke();
+            ctx.font='bold 14px monospace'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.shadowBlur=0;
+            ctx.fillText(['15','20','12'][i],fx*W,by); ctx.restore();
+        });
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,26);
+        ctx.font='bold 10px Outfit'; ctx.fillStyle='#FFD700'; ctx.textAlign='center';
+        ctx.fillText('Q: 3 × 5 = ?', W/2, 16);
+
+    } else if (sub === 'mathematics' && g === 8) {
+        /* Grade 8: Laser Geometry */
+        const angle = ((t*0.02)%(Math.PI*2))-Math.PI/2;
+        const lx=W/2, ly=H-20;
+        ctx.save(); ctx.strokeStyle='rgba(255,45,155,0.8)'; ctx.lineWidth=2; ctx.shadowBlur=12; ctx.shadowColor='#FF2D9B';
+        ctx.beginPath(); ctx.moveTo(lx,ly);
+        ctx.lineTo(lx+Math.cos(angle)*200, ly+Math.sin(angle)*200); ctx.stroke(); ctx.shadowBlur=0;
+        /* Targets */
+        [[W*0.2,30],[W*0.5,20],[W*0.8,30]].forEach(([tx,ty],i)=>{
+            ctx.fillStyle=['#00C3FF44','#FFD70044','#00F5A044'][i];
+            ctx.strokeStyle=['#00C3FF','#FFD700','#00F5A0'][i]; ctx.lineWidth=2;
+            ctx.beginPath(); ctx.arc(tx,ty,20,0,Math.PI*2); ctx.fill(); ctx.stroke();
+            ctx.font='bold 9px Outfit'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(['25','16','9'][i],tx,ty);
+        }); ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,20);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FFD700'; ctx.textAlign='center';
+        ctx.fillText('🔦 Laser Geometry — aim and fire at the correct target!', W/2, 13);
+
+    } else if (sub === 'mathematics' && g === 9) {
+        /* Grade 9: Quadratic Cannon */
+        const power = 0.5+0.5*Math.sin(t*0.03);
+        const bx=80+power*(W-160), by=H-30;
+        ctx.save();
+        /* Cannon */
+        ctx.fillStyle='#FF8C00'; ctx.shadowBlur=10; ctx.shadowColor='#FF8C00';
+        ctx.beginPath(); ctx.roundRect(20,H-44,50,28,6); ctx.fill(); ctx.shadowBlur=0;
+        /* Trajectory */
+        ctx.strokeStyle='rgba(255,140,0,0.3)'; ctx.lineWidth=1.5; ctx.setLineDash([4,5]);
+        ctx.beginPath();
+        for(let i=0;i<=100;i++){const px2=20+i*(W-20)/100,py2=H-30-100*Math.sin(Math.PI*i/100);ctx.lineTo(px2,py2);}
+        ctx.stroke(); ctx.setLineDash([]);
+        /* Target */
+        ctx.fillStyle='rgba(0,245,160,0.3)'; ctx.strokeStyle='#00F5A0'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.arc(bx,H-30,18,0,Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('x=2',bx,H-30); ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,20);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FF8C00'; ctx.textAlign='center';
+        ctx.fillText('💥 Quadratic Cannon — set power to the correct root!', W/2, 13);
+
+    } else if (sub === 'mathematics' && g === 10) {
+        /* Grade 10: Graph Sniper */
+        const OX2=W/2,OY2=H/2,SC=22;
+        ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=0.8;
+        for(let x2=-4;x2<=4;x2++){const sx=OX2+x2*SC;ctx.beginPath();ctx.moveTo(sx,10);ctx.lineTo(sx,H-10);ctx.stroke();}
+        for(let y2=-3;y2<=3;y2++){const sy=OY2-y2*SC;ctx.beginPath();ctx.moveTo(10,sy);ctx.lineTo(W-10,sy);ctx.stroke();}
+        ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.moveTo(10,OY2);ctx.lineTo(W-10,OY2);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(OX2,10);ctx.lineTo(OX2,H-10);ctx.stroke();
+        /* Function y=2x+1 */
+        ctx.strokeStyle='rgba(0,195,255,0.4)'; ctx.lineWidth=2; ctx.setLineDash([5,5]);
+        ctx.beginPath();
+        for(let x2=-4;x2<=4;x2+=0.2){const sx=OX2+x2*SC,sy=OY2-(2*x2+1)*SC;if(x2===-4)ctx.moveTo(sx,sy);else ctx.lineTo(sx,sy);}
+        ctx.stroke(); ctx.setLineDash([]);
+        /* Dots */
+        [[1,3],[2,5],[-1,-1],[0,2]].forEach(([gx,gy],i)=>{
+            const sx=OX2+gx*SC,sy=OY2-gy*SC;
+            const onFn=Math.abs(gy-(2*gx+1))<0.3;
+            ctx.fillStyle=onFn?'rgba(255,255,255,0.2)':'rgba(255,45,155,0.2)';
+            ctx.strokeStyle=onFn?'rgba(255,255,255,0.6)':'rgba(255,45,155,0.6)'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.arc(sx,sy,9,0,Math.PI*2); ctx.fill(); ctx.stroke();
+        });
+        /* Crosshair */
+        const chx=W*0.6+Math.sin(t*0.03)*50,chy=H*0.3+Math.cos(t*0.04)*30;
+        ctx.strokeStyle='rgba(255,215,0,0.8)'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.arc(chx,chy,14,0,Math.PI*2); ctx.stroke();
+        ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,20);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FFD700'; ctx.textAlign='center';
+        ctx.fillText('🎯 Graph Sniper — shoot dots that lie ON y = 2x + 1!', W/2, 13);
+
+    } else if (sub === 'mathematics') {
+        /* Grade 11-12: Calculus Coaster */
+        const gateX = W*0.7;
+        const coasterX = W*0.05 + ((t*0.8)%(gateX-W*0.05));
+        ctx.save();
+        /* Track */
+        ctx.strokeStyle='rgba(255,215,0,0.3)'; ctx.lineWidth=10;
+        ctx.beginPath(); ctx.moveTo(0,H-30);
+        for(let x2=0;x2<W;x2+=5){ctx.lineTo(x2,H-30-20*Math.sin(x2*0.03));}
+        ctx.stroke();
+        /* Gate */
+        ctx.strokeStyle='rgba(0,245,160,0.7)'; ctx.lineWidth=3;
+        ctx.beginPath(); ctx.moveTo(gateX,H-80); ctx.lineTo(gateX,H-20); ctx.stroke();
+        /* Coaster */
+        ctx.fillStyle='#FF8C00'; ctx.shadowBlur=12; ctx.shadowColor='#FF8C00';
+        ctx.beginPath(); ctx.roundRect(coasterX-16,H-55,32,20,4); ctx.fill(); ctx.shadowBlur=0;
+        /* Slider */
+        ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(W*0.1,H-16,W*0.8,12);
+        const sliderX=W*0.1+(W*0.6)*0.6;
+        ctx.fillStyle='#FFD700'; ctx.beginPath(); ctx.arc(sliderX,H-10,8,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,20);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FFD700'; ctx.textAlign='center';
+        ctx.fillText('🎢 Calculus Coaster — drag slider to correct answer, open the gate!', W/2, 13);
+
+    /* ── PYTHON ── */
+    } else if (sub === 'python' && g <= 8) {
+        /* Grade 7-8: Fill-in-blank */
+        ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.beginPath(); ctx.roundRect(10,10,W-20,H-20,8); ctx.fill();
+        const lines=['def greet(name):', '    print("Hello, " + name)', 'greet( ___ )'];
+        lines.forEach((line,i)=>{
+            const isBug=i===2;
+            if(isBug){ctx.fillStyle='rgba(255,45,155,0.2)';ctx.fillRect(10,36+i*22,W-20,20);}
+            ctx.font='10px "Courier New"'; ctx.fillStyle=isBug?'#FF8888':'#88CC88';
+            ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.fillText(line,20,50+i*22);
+        });
+        const tx=W/2-30+Math.sin(t*0.05)*20;
+        ctx.save(); ctx.fillStyle='#FF2D9B33'; ctx.strokeStyle='#FF2D9B'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.roundRect(tx,H-35,60,22,5); ctx.fill(); ctx.stroke();
+        ctx.font='bold 10px "Courier New"'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('"Alice"',tx+30,H-24); ctx.restore();
+        ctx.font='8px Outfit'; ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.textAlign='center';
+        ctx.fillText('↑ Drag tile onto highlighted blank', W/2, H-8);
+
+    } else if (sub === 'python' && g === 9) {
+        /* Grade 9: Code Race */
+        const carX2=W*0.1+((t*0.8)%(W*0.75));
+        ctx.save();
+        ctx.fillStyle='#1a1a2e'; ctx.fillRect(0,H-50,W,50);
+        ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.lineWidth=2; ctx.setLineDash([20,15]);
+        ctx.beginPath(); ctx.moveTo(0,H-25); ctx.lineTo(W,H-25); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle='#FF2D9B'; ctx.shadowBlur=14; ctx.shadowColor='#FF2D9B';
+        ctx.beginPath(); ctx.roundRect(carX2-20,H-46,40,22,4); ctx.fill(); ctx.shadowBlur=0;
+        /* Code snippet */
+        ctx.fillStyle='rgba(0,0,0,0.8)'; ctx.strokeStyle='rgba(255,45,155,0.3)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.roundRect(10,10,W-20,60,8); ctx.fill(); ctx.stroke();
+        ctx.font='10px "Courier New"'; ctx.fillStyle='rgba(255,136,136,0.9)'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+        ctx.fillRect(10,28,W-20,18); ctx.fillStyle='rgba(255,45,155,0.15)';
+        ctx.fillRect(10,28,W-20,18);
+        ctx.fillStyle='#88CC88'; ctx.font='10px "Courier New"'; ctx.textBaseline='alphabetic';
+        ctx.fillText("for i in range(5)",20,42);
+        ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='8px Outfit'; ctx.textAlign='center';
+        ctx.fillText('← Missing colon! Tap the correct fix →',W/2,64);
+        /* Scrolling options */
+        ['range(5):','range(5);','Range(5):','range[5]:'].forEach((opt,i)=>{
+            const ox=((i*120-t*1.5)%(W+120))-20;
+            ctx.fillStyle='rgba(255,45,155,0.15)'; ctx.strokeStyle='#FF2D9B'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.roundRect(ox,H-95,100,30,6); ctx.fill(); ctx.stroke();
+            ctx.font='bold 8px "Courier New"'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(opt,ox+50,H-80);
+        }); ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,18);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FF2D9B'; ctx.textAlign='center';
+        ctx.fillText('🏎 Code Race — tap the correct fix as it scrolls past!', W/2, 12);
+
+    } else if (sub === 'python' && g === 10) {
+        /* Grade 10: Debug Dungeon */
+        ctx.save();
+        ctx.fillStyle='#1a1008'; ctx.fillRect(0,H-50,W,50);
+        ctx.strokeStyle='rgba(255,140,0,0.2)'; ctx.lineWidth=1;
+        for(let x2=0;x2<W;x2+=40){ctx.beginPath();ctx.moveTo(x2,H-50);ctx.lineTo(x2,H);ctx.stroke();}
+        [80,W/2,W-80].forEach(tx2=>{ctx.font='16px sans-serif'; ctx.textAlign='center'; ctx.fillText('🔥',tx2,H-35);});
+        ctx.font='30px sans-serif'; ctx.fillText('🧙',50,H-58);
+        ctx.font='30px sans-serif'; ctx.fillText('👾',W*0.6,H-58);
+        ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.strokeStyle='rgba(255,45,155,0.4)'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.roundRect(10,10,W-20,65,8); ctx.fill(); ctx.stroke();
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FF2D9B'; ctx.textAlign='left'; ctx.fillText('🐛 TypeError Monster',16,24);
+        ctx.fillStyle='rgba(255,136,136,0.15)'; ctx.fillRect(10,28,W-20,16);
+        ctx.font='9px "Courier New"'; ctx.fillStyle='#FF8888'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+        ctx.fillText("print('Age: ' + 25)",18,42);
+        ['str(25)','int(25)','25.str()','(str)25'].forEach((opt,i)=>{
+            const ox=8+(i%2)*(W/2-12), oy=H-44+(~~(i/2))*22;
+            ctx.fillStyle='rgba(255,45,155,0.15)'; ctx.strokeStyle='#FF2D9B'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.roundRect(ox,oy,(W/2-20),18,4); ctx.fill(); ctx.stroke();
+            ctx.font='bold 8px "Courier New"'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText('⚔ '+opt,ox+(W/2-20)/2,oy+9);
+        }); ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,18);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FF2D9B'; ctx.textAlign='center';
+        ctx.fillText('⚔ Debug Dungeon — choose the correct fix sword!', W/2, 12);
+
+    } else if (sub === 'python') {
+        /* Grade 11-12: Compile & Run */
+        ctx.save();
+        ctx.fillStyle='rgba(0,0,0,0.92)'; ctx.strokeStyle='rgba(255,45,155,0.4)'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.roundRect(10,10,W-20,H-20,8); ctx.fill(); ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,0.07)'; ctx.beginPath(); ctx.roundRect(10,10,W-20,20,8); ctx.fill();
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FF2D9B'; ctx.textAlign='left'; ctx.fillText('🐍 fibonacci.py',18,24);
+        const execLines=['def fib(n):','  if n<=1: return n','  return fib(n-1)+fib(n-2)','','result = fib(7)','💥 RecursionError!'];
+        const showCount=Math.min(~~(t*0.06)+1,execLines.length);
+        execLines.slice(0,showCount).forEach((line,i)=>{
+            const isCrash=line.startsWith('💥');
+            if(isCrash){ctx.fillStyle='rgba(255,45,155,0.15)';ctx.fillRect(10,32+i*14,W-20,14);}
+            ctx.font='8px "Courier New"'; ctx.fillStyle=isCrash?'#FF8888':'#88CC88';
+            ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.fillText(line,18,44+i*14);
+        });
+        if(showCount>=execLines.length){
+            ctx.fillStyle='rgba(0,0,0,0.8)'; ctx.strokeStyle='rgba(255,45,155,0.6)'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.roundRect(10,H-50,W-20,38,6); ctx.fill(); ctx.stroke();
+            ctx.font='bold 9px Outfit'; ctx.fillStyle='#FF2D9B'; ctx.textAlign='center';
+            ctx.fillText('⏰ Fix in 8s: correct call?',W/2,H-34);
+            ctx.fillStyle='rgba(255,45,155,0.2)'; ctx.strokeStyle='#FF2D9B'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.roundRect(W/2-55,H-28,50,16,4); ctx.fill(); ctx.stroke();
+            ctx.font='bold 8px "Courier New"'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText('fib(6)',W/2-30,H-20);
+        }
+        ctx.restore();
+
+    /* ── JAVA ── */
+    } else if (sub === 'java' && g <= 8) {
+        /* Grade 6-8: Java Fill-in-blank */
+        ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.beginPath(); ctx.roundRect(10,10,W-20,H-20,8); ctx.fill();
+        ctx.strokeStyle='rgba(255,140,0,0.4)'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.roundRect(10,10,W-20,H-20,8); ctx.stroke();
+        const jlines=['public class Main {','  public static void main(String[] a) {','    ___ x = 42;','    System.out.println(x);','  }','}'];
+        jlines.forEach((line,i)=>{
+            const isBlank=line.includes('___');
+            if(isBlank){ctx.fillStyle='rgba(255,140,0,0.15)';ctx.fillRect(10,28+i*18,W-20,18);}
+            ctx.font='9px "Courier New"'; ctx.fillStyle=isBlank?'#FFB366':'#88CC88';
+            ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.fillText(line,18,42+i*18);
+        });
+        /* Token tile */
+        const tx2=W/2-30+Math.sin(t*0.05)*25;
+        ctx.fillStyle='rgba(255,140,0,0.25)'; ctx.strokeStyle='#FF8C00'; ctx.lineWidth=2;
+        ctx.shadowBlur=10; ctx.shadowColor='#FF8C00';
+        ctx.beginPath(); ctx.roundRect(tx2,H-38,60,24,6); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+        ctx.font='bold 10px "Courier New"'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('int',tx2+30,H-26);
+        ctx.font='8px Outfit'; ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.textAlign='center';
+        ctx.fillText('↑ Drag "int" onto the blank', W/2, H-8);
+
+    } else if (sub === 'java' && g === 9) {
+        /* Grade 9: Code Race Java */
+        const carX3=W*0.1+((t*0.9)%(W*0.75));
+        ctx.save();
+        ctx.fillStyle='#1a1208'; ctx.fillRect(0,H-50,W,50);
+        ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=2; ctx.setLineDash([20,15]);
+        ctx.beginPath(); ctx.moveTo(0,H-25); ctx.lineTo(W,H-25); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle='#FF8C00'; ctx.shadowBlur=14; ctx.shadowColor='#FF8C00';
+        ctx.beginPath(); ctx.roundRect(carX3-20,H-46,40,22,4); ctx.fill(); ctx.shadowBlur=0;
+        ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.strokeStyle='rgba(255,140,0,0.3)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.roundRect(10,10,W-20,58,8); ctx.fill(); ctx.stroke();
+        ctx.font='9px "Courier New"'; ctx.fillStyle='#88CC88'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+        ctx.fillText('for(int i=0; i<5; i++) {',18,28);
+        ctx.fillStyle='rgba(255,140,0,0.15)'; ctx.fillRect(10,30,W-20,18);
+        ctx.font='9px "Courier New"'; ctx.fillStyle='#FFB366'; ctx.fillText('  System.out.println(i)',18,44);
+        ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='8px Outfit'; ctx.textAlign='center';
+        ctx.fillText('← Missing semicolon!',W/2,60);
+        ['"Hello";','i);','i++','println(i)'].forEach((opt,i)=>{
+            const ox=((i*115-t*1.6)%(W+120))-15;
+            ctx.fillStyle='rgba(255,140,0,0.15)'; ctx.strokeStyle='#FF8C00'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.roundRect(ox,H-95,100,28,6); ctx.fill(); ctx.stroke();
+            ctx.font='bold 8px "Courier New"'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(opt,ox+50,H-81);
+        }); ctx.restore();
+
+    } else if (sub === 'java' && g === 10) {
+        /* Grade 10: Debug Dungeon Java */
+        ctx.save();
+        ctx.fillStyle='#150c08'; ctx.fillRect(0,0,W,H);
+        ctx.fillStyle='#1a1008'; ctx.fillRect(0,H-50,W,50);
+        [80,W/2,W-80].forEach(tx3=>{ctx.font='16px sans-serif'; ctx.textAlign='center'; ctx.fillText('🔥',tx3,H-35);});
+        ctx.font='28px sans-serif'; ctx.fillText('🧙',50,H-58);
+        ctx.font='28px sans-serif'; ctx.fillText('👾',W*0.58,H-58);
+        ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.strokeStyle='rgba(255,140,0,0.4)'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.roundRect(10,8,W-20,62,8); ctx.fill(); ctx.stroke();
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FF8C00'; ctx.textAlign='left'; ctx.fillText('🐛 NullPointer Dragon',16,22);
+        ctx.fillStyle='rgba(255,140,0,0.12)'; ctx.fillRect(10,26,W-20,16);
+        ctx.font='9px "Courier New"'; ctx.fillStyle='#FFB366'; ctx.textAlign='left';
+        ctx.fillText('String s=null; s.length();',18,39);
+        ['s!= null','s.length()','null.length()','""'].forEach((opt,i)=>{
+            const ox=8+(i%2)*(W/2-12), oy=H-44+(~~(i/2))*22;
+            ctx.fillStyle='rgba(255,140,0,0.15)'; ctx.strokeStyle='#FF8C00'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.roundRect(ox,oy,(W/2-20),18,4); ctx.fill(); ctx.stroke();
+            ctx.font='bold 8px "Courier New"'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText('⚔ '+opt,ox+(W/2-20)/2,oy+9);
+        }); ctx.restore();
+
+    } else if (sub === 'java' && g === 11) {
+        /* Grade 11: Tower Defense */
+        ctx.save();
+        ctx.fillStyle='rgba(255,140,0,0.1)'; ctx.fillRect(0,H*0.4,W,H*0.2);
+        ctx.strokeStyle='rgba(255,140,0,0.2)'; ctx.lineWidth=30;
+        ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+        /* Bug marching */
+        const bx2=((t*1.2)%(W+60))-30;
+        ctx.fillStyle='rgba(255,45,155,0.2)'; ctx.strokeStyle='#FF2D9B'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.roundRect(bx2-30,H/2-14,60,28,5); ctx.fill(); ctx.stroke();
+        ctx.font='bold 7px "Courier New"'; ctx.fillStyle='#FF8888'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('int x=5',bx2,H/2+1);
+        /* Towers */
+        [[W*0.2,H*0.25],[W*0.6,H*0.7]].forEach(([tx4,ty4],i)=>{
+            const tcol=['#FFD700','#00C3FF'][i];
+            ctx.fillStyle=tcol+'22'; ctx.strokeStyle=tcol; ctx.lineWidth=2; ctx.shadowBlur=10; ctx.shadowColor=tcol;
+            ctx.beginPath(); ctx.arc(tx4,ty4,18,0,Math.PI*2); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+            ctx.font='14px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(['⚔','🛡'][i],tx4,ty4);
+        });
+        /* Bullet */
+        const bulX=W*0.2+((t*3)%60)-10, bulY=H*0.25+((t*3)%30);
+        ctx.fillStyle='#FFD700'; ctx.shadowBlur=6; ctx.shadowColor='#FFD700';
+        ctx.beginPath(); ctx.arc(bulX,bulY,4,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+        ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,18);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FF8C00'; ctx.textAlign='center';
+        ctx.fillText('☕ Tower Defense — place fix towers to destroy Java bugs!', W/2, 12);
+
+    } else if (sub === 'java') {
+        /* Grade 12: Compile & Run Java */
+        ctx.save();
+        ctx.fillStyle='rgba(0,0,0,0.92)'; ctx.strokeStyle='rgba(255,140,0,0.4)'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.roundRect(10,10,W-20,H-20,8); ctx.fill(); ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.roundRect(10,10,W-20,20,8); ctx.fill();
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FF8C00'; ctx.textAlign='left'; ctx.fillText('☕ Main.java',18,24);
+        const jexec=['public class Main {','  String s = null;','  s.length();','💥 NullPointerException!'];
+        const jshow=Math.min(~~(t*0.06)+1,jexec.length);
+        jexec.slice(0,jshow).forEach((line,i)=>{
+            const isCrash=line.startsWith('💥');
+            if(isCrash){ctx.fillStyle='rgba(255,140,0,0.15)';ctx.fillRect(10,30+i*14,W-20,14);}
+            ctx.font='8px "Courier New"'; ctx.fillStyle=isCrash?'#FFB366':'#88CC88';
+            ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.fillText(line,18,42+i*14);
+        });
+        if(jshow>=jexec.length){
+            ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.strokeStyle='rgba(255,140,0,0.6)'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.roundRect(10,H-48,W-20,36,6); ctx.fill(); ctx.stroke();
+            ctx.font='bold 9px Outfit'; ctx.fillStyle='#FF8C00'; ctx.textAlign='center';
+            ctx.fillText('⏰ Fix NullPointerException in 8s!',W/2,H-32);
+            ['String s="Hi";','String s=null;','s=new String()','int s=0'].forEach((opt,i)=>{
+                const ox=12+(i%2)*((W-24)/2+2), oy=H-24+(~~(i/2))*0;
+                if(i<2){ctx.fillStyle='rgba(255,140,0,0.2)';ctx.strokeStyle='#FF8C00';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(ox,oy,(W-28)/2,16,4);ctx.fill();ctx.stroke();ctx.font='bold 7px "Courier New"';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(opt,ox+(W-28)/4,oy+8);}
+            });
+        }
+        ctx.restore();
+
+    /* ── HTML ── */
+    } else if (sub === 'html' && g <= 8) {
+        /* Grade 6-8: HTML Architect */
+        ctx.save();
+        /* Left: build area */
+        ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.strokeStyle='rgba(0,195,255,0.3)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.roundRect(8,22,W*0.52-4,H-50,6); ctx.fill(); ctx.stroke();
+        ctx.font='bold 8px Outfit'; ctx.fillStyle='#00C3FF'; ctx.textAlign='left'; ctx.fillText('🏗 Build:',14,36);
+        ['<h1>','{text}','</h1>'].forEach((slot,i)=>{
+            const sy=44+i*26;
+            ctx.fillStyle='rgba(0,195,255,0.08)'; ctx.strokeStyle='rgba(0,195,255,0.3)'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.roundRect(12,sy,W*0.5-16,22,4); ctx.fill(); ctx.stroke();
+            ctx.font=i===1?'bold 8px Outfit':'bold 9px "Courier New"';
+            ctx.fillStyle=i===1?'rgba(255,215,0,0.5)':'rgba(0,195,255,0.5)'; ctx.textAlign='left'; ctx.textBaseline='middle';
+            ctx.fillText(slot,18,sy+11);
+        });
+        /* Right: preview */
+        const PX=W*0.55, PY=22;
+        ctx.fillStyle='rgba(255,255,255,0.92)'; ctx.beginPath(); ctx.roundRect(PX,PY,W*0.42,H-50,6); ctx.fill();
+        ctx.fillStyle='#e0e0e0'; ctx.beginPath(); ctx.roundRect(PX,PY,W*0.42,18,6); ctx.fill();
+        ctx.font='bold 7px serif'; ctx.fillStyle='#111'; ctx.textAlign='left'; ctx.textBaseline='middle';
+        ctx.fillText('● ● ●',PX+4,PY+9);
+        ctx.font='bold 13px serif'; ctx.fillStyle='#111'; ctx.textAlign='center';
+        ctx.fillText('Hello!',PX+W*0.21,PY+36);
+        /* Tag tile floating */
+        const tTileX=W*0.22+Math.sin(t*0.04)*12;
+        ctx.fillStyle='rgba(0,195,255,0.2)'; ctx.strokeStyle='#00C3FF'; ctx.lineWidth=1.5; ctx.shadowBlur=8; ctx.shadowColor='#00C3FF';
+        ctx.beginPath(); ctx.roundRect(tTileX-28,H-36,56,22,5); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+        ctx.font='bold 9px "Courier New"'; ctx.fillStyle='#00C3FF'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('<h1>',tTileX,H-25); ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,20);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#00C3FF'; ctx.textAlign='center';
+        ctx.fillText('🌐 HTML Architect — drag tags, see live preview update!', W/2, 13);
+
+    } else if (sub === 'html' && g <= 10) {
+        /* Grade 9-10: Code Race HTML */
+        const carX4=W*0.1+((t*0.85)%(W*0.75));
+        ctx.save();
+        ctx.fillStyle='#0a0812'; ctx.fillRect(0,H-50,W,50);
+        ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=2; ctx.setLineDash([20,15]);
+        ctx.beginPath(); ctx.moveTo(0,H-25); ctx.lineTo(W,H-25); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle='#E44D26'; ctx.shadowBlur=14; ctx.shadowColor='#E44D26';
+        ctx.beginPath(); ctx.roundRect(carX4-20,H-46,40,22,4); ctx.fill(); ctx.shadowBlur=0;
+        ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.strokeStyle='rgba(228,77,38,0.3)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.roundRect(10,10,W-20,58,8); ctx.fill(); ctx.stroke();
+        ctx.font='9px "Courier New"'; ctx.fillStyle='#88CC88'; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+        ctx.fillText('<h1>Hello World<h1>',18,28);
+        ctx.fillStyle='rgba(228,77,38,0.15)'; ctx.fillRect(10,30,W-20,18);
+        ctx.font='9px "Courier New"'; ctx.fillStyle='#FF8888'; ctx.fillText('<h1>Hello World<h1>',18,44);
+        ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='8px Outfit'; ctx.textAlign='center';
+        ctx.fillText('← Missing closing slash!',W/2,60);
+        ['</h1>','<h1>','<H1>','</H1>'].forEach((opt,i)=>{
+            const ox=((i*115-t*1.5)%(W+120))-15;
+            ctx.fillStyle='rgba(228,77,38,0.15)'; ctx.strokeStyle='#E44D26'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.roundRect(ox,H-95,100,28,6); ctx.fill(); ctx.stroke();
+            ctx.font='bold 8px "Courier New"'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(opt,ox+50,H-81);
+        }); ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,18);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#E44D26'; ctx.textAlign='center';
+        ctx.fillText('🌐 Code Race HTML — fix the broken tag as it scrolls past!', W/2, 12);
+
+    } else if (sub === 'html') {
+        /* Grade 11-12: Compile & Run HTML */
+        ctx.save();
+        ctx.fillStyle='rgba(0,0,0,0.92)'; ctx.strokeStyle='rgba(228,77,38,0.4)'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.roundRect(10,10,W-20,H-20,8); ctx.fill(); ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.roundRect(10,10,W-20,20,8); ctx.fill();
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#E44D26'; ctx.textAlign='left'; ctx.fillText('🌐 index.html',18,24);
+        const hexec=['Parsing HTML...','<body> OK','<h1>Hello World<h1>','💥 Render Error!'];
+        const hshow=Math.min(~~(t*0.06)+1,hexec.length);
+        hexec.slice(0,hshow).forEach((line,i)=>{
+            const isCrash=line.startsWith('💥');
+            if(isCrash){ctx.fillStyle='rgba(228,77,38,0.15)';ctx.fillRect(10,30+i*14,W-20,14);}
+            ctx.font='8px "Courier New"'; ctx.fillStyle=isCrash?'#FF8888':'#88CC88';
+            ctx.textAlign='left'; ctx.textBaseline='alphabetic'; ctx.fillText(line,18,42+i*14);
+        });
+        if(hshow>=hexec.length){
+            ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.strokeStyle='rgba(228,77,38,0.6)'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.roundRect(10,H-50,W-20,38,6); ctx.fill(); ctx.stroke();
+            ctx.font='bold 9px Outfit'; ctx.fillStyle='#E44D26'; ctx.textAlign='center';
+            ctx.fillText('⏰ Fix the tag error in 8s!',W/2,H-34);
+            ['</h1>','<h1>','<H1>','<h1/>'].forEach((opt,i)=>{
+                const ox=12+(i%2)*((W-24)/2+2), oy=H-26;
+                if(i<2){ctx.fillStyle='rgba(228,77,38,0.2)';ctx.strokeStyle='#E44D26';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(ox,oy,(W-28)/2,16,4);ctx.fill();ctx.stroke();ctx.font='bold 8px "Courier New"';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(opt,ox+(W-28)/4,oy+8);}
+            });
+        }
+        ctx.restore();
+
+    } else {
+        /* Fallback: orbiting particles */
+        const CX=W/2, CY=H/2;
+        ctx.save(); ctx.strokeStyle='rgba(0,195,255,0.2)'; ctx.lineWidth=14;
+        ctx.beginPath(); ctx.arc(CX,CY,60,0,Math.PI*2); ctx.stroke();
+        ctx.strokeStyle='rgba(0,195,255,0.4)'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.arc(CX,CY,60,0,Math.PI*2); ctx.stroke();
+        [0,1,2].forEach(i=>{ const angle=t*0.03+i*(Math.PI*2/3); const px=CX+Math.cos(angle)*60,py=CY+Math.sin(angle)*60;
+            const bcol=['#00C3FF','#FF2D9B','#FFD700'][i];
+            ctx.fillStyle=bcol+'44'; ctx.strokeStyle=bcol; ctx.lineWidth=2; ctx.shadowBlur=10; ctx.shadowColor=bcol;
+            ctx.beginPath(); ctx.arc(px,py,18,0,Math.PI*2); ctx.fill(); ctx.stroke(); ctx.shadowBlur=0;
+            ctx.font='bold 8px Outfit'; ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(['A','B','C'][i],px,py);
+        });
+        const cg=ctx.createRadialGradient(CX,CY,2,CX,CY,16);
+        cg.addColorStop(0,col); cg.addColorStop(1,'transparent');
+        ctx.fillStyle=cg; ctx.beginPath(); ctx.arc(CX,CY,16,0,Math.PI*2); ctx.fill(); ctx.restore();
+        ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,22);
+        ctx.font='bold 9px Outfit'; ctx.fillStyle='#FFD700'; ctx.textAlign='center';
+        ctx.fillText('Tap the correct orbiting answer!', W/2, 14);
+    }
+}
+/* ── Tab system ── */
+let currentTabIdx = 0;
+const tabNames = ['Theory','Formulae','How to Play'];
+const tabIds   = ['theory','equations','demo'];
+
+function switchTab(name, btnEl, idx) {
+    if (idx === undefined) idx = tabIds.indexOf(name);
+    currentTabIdx = idx;
+
+    document.querySelectorAll('.learn-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.learn-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+
+    if (btnEl) btnEl.classList.add('active');
+    else document.querySelectorAll('.learn-tab')[idx].classList.add('active');
+
+    /* Stepper dots */
+    document.querySelectorAll('.stepper-dot').forEach((d,i) => {
+        d.classList.toggle('active', i === idx);
+        if (i < idx) d.classList.add('done'); else d.classList.remove('done');
+    });
+
+    document.getElementById('learnTabName').textContent = tabNames[idx];
+    document.getElementById('learnTabNum').textContent  = `Step ${idx+1} of 3`;
+
+    document.getElementById('btnPrev').style.display   = idx > 0 ? 'inline-flex' : 'none';
+    document.getElementById('btnNext').style.display   = idx < 2 ? 'inline-flex' : 'none';
+    document.getElementById('btnLaunch').style.display = idx === 2 ? 'inline-flex' : 'none';
+
+    /* Start demo animation when demo tab active */
+    if (name === 'demo') drawDemoCanvas();
+    else cancelAnimationFrame(demoAnimId);
+}
+
+function navTab(dir) {
+    const next = Math.max(0, Math.min(2, currentTabIdx + dir));
+    switchTab(tabIds[next], null, next);
+}
+
+/* ── Screen management ── */
+function showScreen(id) {
+    document.querySelectorAll('.mission-screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+function goToLearn() {
+    renderLearnContent();
+    showScreen('learnScreen');
+    switchTab('theory', null, 0);
+}
+
+function startMission() {
+    cancelAnimationFrame(demoAnimId);
+    showScreen('gameScreen');
+    if (typeof initGame === 'function') initGame();
+}
+
+function showMissionComplete(score, accuracy, timeTaken) {
+    const xp = Math.min(999, score);
+    document.getElementById('scoreInput').value       = score;
+    document.getElementById('finalScoreNum').textContent = score;
+    document.getElementById('xpEarnedNum').textContent   = xp;
+    document.getElementById('accuracyNum').textContent   = (accuracy  || 0) + '%';
+    document.getElementById('timeNum').textContent        = (timeTaken || 0) + 's';
+
+    const stars = document.querySelectorAll('#starRating .star');
+    const earned = score >= 200 ? 3 : score >= 80 ? 2 : 1;
+    stars.forEach((s,i) => { i >= earned ? s.classList.add('dim') : s.classList.remove('dim'); });
+
+    const best = document.getElementById('bestDisplay');
+    if (best) best.textContent = score;
+
+    showScreen('missionComplete');
+    launchConfetti();
+}
+
+function submitXP() {
+    const score = parseInt(document.getElementById('scoreInput').value) || 0;
+    const btn   = document.querySelector('.btn-return');
+    btn.textContent    = '✨ Saving progress...';
+    btn.style.opacity  = '0.7';
+    btn.style.pointerEvents = 'none';
+
+    fetch(window.location.href, {
+        method: 'POST',
+        headers:{ 'Content-Type':'application/x-www-form-urlencoded' },
+        body: 'score=' + score
+    }).then(() => {
+        window.location.href = '/student';
+    }).catch(() => {
+        window.location.href = '/student';
+    });
+}
+
+function launchConfetti() {
+    const cols = ['#FFD700','#FF2D9B','#00C3FF','#00F5A0','#FF8C00','#fff'];
+    for (let i = 0; i < 90; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.cssText = `left:${Math.random()*100}vw;background:${cols[~~(Math.random()*cols.length)]};width:${Math.random()*10+6}px;height:${Math.random()*6+4}px;border-radius:${Math.random()>.5?'50%':'2px'};--cf-dur:${(Math.random()*2+1.5).toFixed(1)}s;--cf-delay:${(Math.random()*1.2).toFixed(2)}s;`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 4000);
+    }
+}
+</script>
+
+{% endblock %}

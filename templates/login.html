@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .login-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 160px);
+        padding: 2rem 1rem;
+    }
+
+    .login-box {
+        width: 100%;
+        max-width: 440px;
+        background: rgba(15, 8, 48, 0.75);
+        border: 1px solid rgba(255, 215, 0, 0.18);
+        border-radius: 28px;
+        padding: 3rem 2.5rem;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+        position: relative;
+        overflow: hidden;
+        animation: popIn 0.7s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    @keyframes popIn {
+        from { opacity: 0; transform: translateY(40px) scale(0.96); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .login-box::before {
+        content: '';
+        position: absolute;
+        top: -80px; right: -80px;
+        width: 220px; height: 220px;
+        background: radial-gradient(circle, rgba(255,45,155,0.18) 0%, transparent 70%);
+        pointer-events: none;
+        animation: orbFloat 6s ease-in-out infinite alternate;
+    }
+
+    .login-box::after {
+        content: '';
+        position: absolute;
+        bottom: -60px; left: -60px;
+        width: 180px; height: 180px;
+        background: radial-gradient(circle, rgba(0,195,255,0.12) 0%, transparent 70%);
+        pointer-events: none;
+        animation: orbFloat 8s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes orbFloat {
+        from { transform: translate(0,0) scale(1); }
+        to   { transform: translate(10px,-10px) scale(1.08); }
+    }
+
+    .login-crown {
+        text-align: center;
+        margin-bottom: 0.5rem;
+        font-size: 3rem;
+        animation: crownBounce 1s 0.4s cubic-bezier(0.16,1,0.3,1) both;
+        filter: drop-shadow(0 0 16px rgba(255,215,0,0.5));
+    }
+
+    @keyframes crownBounce {
+        from { opacity: 0; transform: translateY(-20px) scale(0.5) rotate(-15deg); }
+        to   { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+    }
+
+    .login-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.2rem;
+        font-weight: 900;
+        text-align: center;
+        background: linear-gradient(135deg, #fff 0%, var(--vivid-gold) 60%, var(--saffron) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.4rem;
+        animation: fadeUp 0.6s 0.5s both;
+    }
+
+    .login-sub {
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 2.2rem;
+        letter-spacing: 0.03em;
+        animation: fadeUp 0.6s 0.6s both;
+    }
+
+    .login-sub span {
+        color: var(--electric-blue);
+        font-weight: 500;
+    }
+
+    .form-group {
+        margin-bottom: 1.3rem;
+        position: relative;
+        animation: fadeUp 0.6s both;
+    }
+
+    .form-group:nth-child(1) { animation-delay: 0.65s; }
+    .form-group:nth-child(2) { animation-delay: 0.75s; }
+
+    .form-label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+        padding-left: 0.25rem;
+    }
+
+    .input-wrap {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.1rem;
+        pointer-events: none;
+        transition: filter 0.3s;
+    }
+
+    .form-input {
+        width: 100%;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,215,0,0.15);
+        border-radius: 14px;
+        padding: 0.9rem 1rem 0.9rem 3rem;
+        color: var(--text);
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.95rem;
+        outline: none;
+        transition: all 0.3s;
+    }
+
+    .form-input::placeholder { color: rgba(155,143,192,0.5); }
+
+    .form-input:focus {
+        border-color: var(--vivid-gold);
+        background: rgba(255,215,0,0.04);
+        box-shadow: 0 0 0 3px rgba(255,215,0,0.1);
+    }
+
+    .forgot-link {
+        display: block;
+        text-align: right;
+        font-size: 0.78rem;
+        color: var(--muted);
+        text-decoration: none;
+        margin-top: -0.6rem;
+        margin-bottom: 1.6rem;
+        transition: color 0.2s;
+        animation: fadeUp 0.6s 0.85s both;
+    }
+
+    .forgot-link:hover { color: var(--vivid-gold); }
+
+    .btn-login-submit {
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--vivid-gold) 0%, var(--saffron) 100%);
+        color: #1A0A00;
+        font-family: 'Outfit', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 6px 28px rgba(255,215,0,0.35);
+        transition: all 0.25s;
+        animation: fadeUp 0.6s 0.95s both;
+    }
+
+    .btn-login-submit::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn-login-submit:hover::before { left: 100%; }
+
+    .btn-login-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(255,215,0,0.5);
+        filter: brightness(1.08);
+    }
+
+    .btn-login-submit:active { transform: translateY(0); }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1.6rem 0;
+        animation: fadeUp 0.6s 1.05s both;
+    }
+
+    .divider-line {
+        flex: 1;
+        height: 1px;
+        background: rgba(255,215,0,0.12);
+    }
+
+    .divider span {
+        font-size: 0.75rem;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .btn-google {
+        width: 100%;
+        padding: 0.85rem;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.04);
+        color: var(--text);
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.25s;
+        text-decoration: none;
+        animation: fadeUp 0.6s 1.1s both;
+    }
+
+    .btn-google:hover {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.2);
+        transform: translateY(-2px);
+    }
+
+    .register-prompt {
+        text-align: center;
+        margin-top: 1.8rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+        animation: fadeUp 0.6s 1.15s both;
+    }
+
+    .register-prompt a {
+        color: var(--bright-pink);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .register-prompt a:hover {
+        color: var(--vivid-gold);
+        filter: drop-shadow(0 0 6px rgba(255,215,0,0.5));
+    }
+
+    .xp-motivator {
+        position: absolute;
+        top: -14px; right: 24px;
+        background: linear-gradient(135deg, var(--bright-pink), #8B00E8);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        padding: 0.3rem 0.9rem;
+        border-radius: 99px;
+        box-shadow: 0 4px 16px rgba(255,45,155,0.4);
+        animation: badgePop 0.5s 1.2s cubic-bezier(0.16,1,0.3,1) both;
+        white-space: nowrap;
+    }
+
+    @keyframes badgePop {
+        from { opacity: 0; transform: scale(0) rotate(-10deg); }
+        to   { opacity: 1; transform: scale(1) rotate(0deg); }
+    }
+
+    .remember-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        animation: fadeUp 0.6s 0.9s both;
+    }
+
+    .remember-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .remember-checkbox input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--vivid-gold);
+        cursor: pointer;
+    }
+
+    .remember-checkbox label {
+        font-size: 0.8rem;
+        color: var(--muted);
+        cursor: pointer;
+    }
+
+    .particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; border-radius: 28px; }
+
+    .particle {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0;
+        animation: particleFly var(--pdur) var(--pdelay) ease-in infinite;
+    }
+
+    @keyframes particleFly {
+        0%   { opacity: 0; transform: translateY(0) scale(0); }
+        20%  { opacity: 0.8; }
+        100% { opacity: 0; transform: translateY(-200px) scale(1.5); }
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="login-wrapper">
+    <div class="login-box">
+
+        <div class="particles" id="loginParticles"></div>
+
+        <div class="login-crown">👑</div>
+        <h2 class="login-title" data-translate="welcome_back">Welcome Back!</h2>
+        <p class="login-sub" data-translate="login_subtitle">Login to continue your <span>royal STEM quest</span></p>
+
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label" data-translate="email_address">Email Address</label>
+                <div class="input-wrap">
+                    <span class="input-icon">📧</span>
+                    <input class="form-input" type="email" name="email" placeholder="student@school.in" required autocomplete="email">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" data-translate="password">Password</label>
+                <div class="input-wrap">
+                    <span class="input-icon">🔐</span>
+                    <input class="form-input" type="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                </div>
+            </div>
+
+            <div class="remember-row">
+                <div class="remember-checkbox">
+                    <input type="checkbox" name="remember" id="remember">
+                    <label for="remember" data-translate="remember_me">Remember me</label>
+                </div>
+                <a href="{{ url_for('forgot_password') }}" class="forgot-link" data-translate="forgot_password">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn-login-submit" data-translate="login_continue">
+                🚀 Login & Continue Quest
+            </button>
+        </form>
+
+        <div class="divider">
+            <div class="divider-line"></div>
+            <span data-translate="or">or</span>
+            <div class="divider-line"></div>
+        </div>
+
+        <a href="{{ url_for('google_auth') }}" class="btn-google" data-translate="continue_google">
+            <svg width="18" height="18" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Continue with Google
+        </a>
+
+        <p class="register-prompt">
+            <span data-translate="new_to_platform">New to ShikshaSetu?</span> &nbsp;<a href="{{ url_for('register') }}" data-translate="create_account">Create your royal account →</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    const container = document.getElementById('loginParticles');
+    const colours = ['#FFD700','#FF2D9B','#00C3FF','#00F5A0','#FF8C00'];
+    for (let i = 0; i < 18; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 6 + 3;
+        p.style.cssText = `
+            width:${size}px; height:${size}px;
+            background:${colours[Math.floor(Math.random()*colours.length)]};
+            left:${Math.random()*100}%;
+            bottom:${Math.random()*20}%;
+            --pdur:${(Math.random()*3+3).toFixed(1)}s;
+            --pdelay:${(Math.random()*5).toFixed(1)}s;
+            box-shadow: 0 0 ${size*2}px ${colours[Math.floor(Math.random()*colours.length)]};
+        `;
+        container.appendChild(p);
+    }
+
+    const form = document.querySelector('form');
+    const btn = document.querySelector('.btn-login-submit');
+
+    form.addEventListener('submit', () => {
+        btn.innerHTML = '<span data-translate="entering_kingdom">✨ Entering Kingdom...</span>';
+        btn.style.background = 'linear-gradient(135deg,#FF2D9B,#8B00E8)';
+        btn.style.color = '#fff';
+        btn.style.boxShadow = '0 6px 28px rgba(255,45,155,0.5)';
+    });
+
+    document.querySelectorAll('.form-input').forEach(input => {
+        input.addEventListener('focus', () => {
+            const label = input.closest('.form-group').querySelector('.form-label');
+            if (label) label.style.color = '#FFD700';
+        });
+        input.addEventListener('blur', () => {
+            const label = input.closest('.form-group').querySelector('.form-label');
+            if (label) label.style.color = '';
+        });
+    });
+</script>
+
+{% endblock %}

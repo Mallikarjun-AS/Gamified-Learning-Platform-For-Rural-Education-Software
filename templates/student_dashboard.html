@@ -1,0 +1,813 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+/* ══════════════════════════════════
+   STUDENT DASHBOARD
+══════════════════════════════════ */
+
+.dash-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    padding: 1.8rem 2rem;
+    background: rgba(15,8,48,0.75);
+    border: 1px solid rgba(255,215,0,0.15);
+    border-radius: 24px;
+    backdrop-filter: blur(16px);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.1s both;
+}
+
+.dash-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg,
+        var(--bright-pink), var(--vivid-gold),
+        var(--electric-blue), var(--emerald), var(--saffron));
+    background-size: 200%;
+    animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+    from { background-position: 0% center; }
+    to   { background-position: 200% center; }
+}
+
+.dash-hero::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(255,215,0,0.07) 0%, transparent 70%);
+    pointer-events: none;
+    animation: breathe 5s ease-in-out infinite;
+}
+
+@keyframes breathe {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.15); }
+}
+
+.hero-left { display: flex; align-items: center; gap: 1.2rem; flex: 1; min-width: 220px; }
+.hero-avatar-wrap { position: relative; flex-shrink: 0; }
+
+.hero-avatar {
+    width: 68px; height: 68px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,140,0,0.08));
+    border: 2px solid rgba(255,215,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    box-shadow: 0 0 24px rgba(255,215,0,0.2);
+    animation: avatarFloat 3s ease-in-out infinite;
+}
+
+@keyframes avatarFloat {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-5px); }
+}
+
+.hero-online-dot {
+    position: absolute;
+    bottom: -3px; right: -3px;
+    width: 14px; height: 14px;
+    background: var(--emerald);
+    border-radius: 50%;
+    border: 2px solid #0F0830;
+    box-shadow: 0 0 8px var(--emerald);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:0.5; transform:scale(0.75); }
+}
+
+.hero-greeting {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 3px;
+}
+
+.hero-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff 0%, var(--vivid-gold) 60%, var(--saffron) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+}
+
+.hero-sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 3px;
+}
+
+.hero-sub strong { color: var(--electric-blue); font-weight: 600; }
+
+.hero-right { display: flex; align-items: center; gap: 1.5rem; flex-shrink: 0; }
+
+.xp-orb {
+    position: relative;
+    width: 88px; height: 88px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.xp-orb-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    background:
+        linear-gradient(#0F0830,#0F0830) padding-box,
+        linear-gradient(135deg, var(--vivid-gold), var(--saffron)) border-box;
+    animation: orbSpin 8s linear infinite;
+}
+
+@keyframes orbSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.xp-orb-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.7rem;
+    font-weight: 900;
+    color: var(--vivid-gold);
+    line-height: 1;
+    filter: drop-shadow(0 0 8px rgba(255,215,0,0.5));
+    position: relative;
+    z-index: 1;
+}
+
+.xp-orb-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 2px;
+    position: relative;
+    z-index: 1;
+}
+
+.level-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.level-badge-pill {
+    background: linear-gradient(135deg, rgba(255,45,155,0.18), rgba(139,0,232,0.12));
+    border: 1px solid rgba(255,45,155,0.35);
+    color: var(--bright-pink);
+    padding: 0.35rem 1rem;
+    border-radius: 99px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    box-shadow: 0 0 16px rgba(255,45,155,0.15);
+}
+
+.level-badge-sub {
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1.2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.btn-hero-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    background: linear-gradient(135deg, var(--vivid-gold), var(--saffron));
+    color: #1a0800;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 0.88rem;
+    letter-spacing: 0.05em;
+    padding: 0.72rem 1.6rem;
+    border: none;
+    border-radius: 99px;
+    cursor: pointer;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 6px 22px rgba(255,215,0,0.38);
+    transition: transform 0.25s, box-shadow 0.25s, filter 0.25s;
+}
+
+.btn-hero-primary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    transition: left 0.45s ease;
+}
+
+.btn-hero-primary:hover::before { left: 100%; }
+.btn-hero-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(255,215,0,0.5);
+    filter: brightness(1.08);
+}
+
+.btn-hero-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.72rem 1.4rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 99px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.25s, border-color 0.25s, color 0.25s;
+}
+
+.btn-hero-ghost:hover {
+    background: rgba(255,45,155,0.08);
+    border-color: rgba(255,45,155,0.3);
+    color: var(--bright-pink);
+}
+
+/* ── STATS GRID ── */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.25s both;
+}
+
+.stat-card {
+    background: rgba(15,8,48,0.65);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 1.2rem 1rem;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    cursor: default;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--stat-col);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3), 0 0 20px var(--stat-glow);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--stat-accent);
+    opacity: 0.7;
+}
+
+.stat-icon { font-size: 1.8rem; margin-bottom: 0.5rem; filter: drop-shadow(0 0 8px var(--stat-glow)); }
+
+.stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--stat-col);
+    line-height: 1;
+    filter: drop-shadow(0 0 6px var(--stat-glow));
+}
+
+.stat-lbl {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+.stat-xp    { --stat-col:#FFD700; --stat-glow:rgba(255,215,0,0.3);   --stat-accent:linear-gradient(90deg,#FFD700,#FF8C00); }
+.stat-level { --stat-col:#FF2D9B; --stat-glow:rgba(255,45,155,0.25); --stat-accent:linear-gradient(90deg,#FF2D9B,#8B00E8); }
+.stat-grade { --stat-col:#00C3FF; --stat-glow:rgba(0,195,255,0.25);  --stat-accent:linear-gradient(90deg,#00C3FF,#00F5A0); }
+.stat-rank  { --stat-col:#00F5A0; --stat-glow:rgba(0,245,160,0.25);  --stat-accent:linear-gradient(90deg,#00F5A0,#00C3FF); }
+
+/* ── XP PROGRESS BAR ── */
+.xp-progress-section {
+    background: rgba(15,8,48,0.65);
+    border: 1px solid rgba(255,215,0,0.12);
+    border-radius: 18px;
+    padding: 1.4rem 1.8rem;
+    backdrop-filter: blur(12px);
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.35s both;
+}
+
+.xp-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.9rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.xp-progress-title {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.xp-progress-vals {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.xp-current { color: var(--vivid-gold); }
+.xp-sep     { color: var(--muted); }
+.xp-next    { color: var(--muted); font-weight: 400; font-size: 0.75rem; }
+
+.xp-bar-track {
+    height: 10px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 99px;
+    overflow: hidden;
+    position: relative;
+}
+
+.xp-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--vivid-gold), var(--saffron));
+    box-shadow: 0 0 12px rgba(255,215,0,0.5);
+    width: 0%;
+    animation: xpFill 1.4s 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+
+@keyframes xpFill {
+    from { width: 0%; }
+    to   { width: var(--xp-width); }
+}
+
+.xp-bar-shine {
+    position: absolute;
+    top: 1px; left: 0;
+    width: 40px; height: 4px;
+    background: rgba(255,255,255,0.35);
+    border-radius: 99px;
+    animation: xpShine 2s 1.5s ease-in-out infinite;
+}
+
+@keyframes xpShine {
+    0%   { left: -40px; opacity: 0; }
+    20%  { opacity: 1; }
+    100% { left: 100%; opacity: 0; }
+}
+
+.xp-milestone-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.6rem;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+}
+
+/* ── SECTION HEADERS ── */
+.section-hdr {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.2rem;
+}
+
+.section-hdr-line {
+    flex: 1; height: 1px;
+    background: rgba(255,255,255,0.06);
+}
+
+.section-hdr-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+/* ── QUICK ACTIONS ── */
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.45s both;
+}
+
+.quick-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 1.3rem;
+    background: rgba(15,8,48,0.65);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    position: relative;
+    overflow: hidden;
+}
+
+.quick-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 3px;
+    background: var(--qc-accent);
+    border-radius: 3px 0 0 3px;
+}
+
+.quick-card:hover {
+    transform: translateX(5px);
+    border-color: var(--qc-border);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+}
+
+.quick-card-icon {
+    font-size: 1.8rem;
+    width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--qc-icon-bg);
+    border-radius: 12px;
+    border: 1px solid var(--qc-icon-border);
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 8px var(--qc-glow));
+    transition: transform 0.25s;
+}
+
+.quick-card:hover .quick-card-icon { transform: scale(1.12) rotate(-5deg); }
+
+.quick-card-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.quick-card-sub { font-size: 0.72rem; color: var(--muted); }
+
+.quick-card-arrow {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 1rem;
+    transition: transform 0.25s, color 0.25s;
+    flex-shrink: 0;
+}
+
+.quick-card:hover .quick-card-arrow {
+    transform: translateX(4px);
+    color: #fff;
+}
+
+.qc-gold  { --qc-accent:var(--vivid-gold);   --qc-border:rgba(255,215,0,0.25);   --qc-icon-bg:rgba(255,215,0,0.1);   --qc-icon-border:rgba(255,215,0,0.25);   --qc-glow:rgba(255,215,0,0.3);   }
+.qc-pink  { --qc-accent:var(--bright-pink);   --qc-border:rgba(255,45,155,0.25);  --qc-icon-bg:rgba(255,45,155,0.1);  --qc-icon-border:rgba(255,45,155,0.25);  --qc-glow:rgba(255,45,155,0.3);  }
+.qc-blue  { --qc-accent:var(--electric-blue); --qc-border:rgba(0,195,255,0.25);   --qc-icon-bg:rgba(0,195,255,0.1);   --qc-icon-border:rgba(0,195,255,0.25);   --qc-glow:rgba(0,195,255,0.3);   }
+.qc-green { --qc-accent:var(--emerald);       --qc-border:rgba(0,245,160,0.25);   --qc-icon-bg:rgba(0,245,160,0.1);   --qc-icon-border:rgba(0,245,160,0.25);   --qc-glow:rgba(0,245,160,0.3);   }
+
+/* ── RECENT ACTIVITY ── */
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.55s both;
+}
+
+.activity-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1.2rem;
+    background: rgba(15,8,48,0.5);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 14px;
+    backdrop-filter: blur(10px);
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.activity-row:hover {
+    border-color: rgba(255,215,0,0.12);
+    transform: translateX(4px);
+}
+
+.activity-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px currentColor;
+}
+
+.activity-text { flex: 1; font-size: 0.83rem; color: #ccc; }
+.activity-text strong { color: #fff; }
+
+.activity-xp {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--vivid-gold);
+    white-space: nowrap;
+}
+
+.activity-time {
+    font-size: 0.68rem;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+/* ── MOTIVATIONAL QUOTE CARD ── */
+.quote-card {
+    background: rgba(15,8,48,0.7);
+    border: 1px solid rgba(0,195,255,0.15);
+    border-radius: 18px;
+    padding: 1.5rem 2rem;
+    backdrop-filter: blur(14px);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s 0.65s both;
+}
+
+.quote-card::before {
+    content: '"';
+    position: absolute;
+    top: -20px; left: 16px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 8rem;
+    font-weight: 900;
+    color: rgba(0,195,255,0.06);
+    line-height: 1;
+    pointer-events: none;
+}
+
+.quote-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-style: italic;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+}
+
+.quote-author {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--electric-blue);
+    margin-top: 0.7rem;
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(22px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+</style>
+
+<!-- ══════════════════════════════════
+     HERO CARD
+══════════════════════════════════ -->
+<div class="dash-hero">
+    <div style="flex:1;">
+        <div class="hero-left">
+            <div class="hero-avatar-wrap">
+                <div class="hero-avatar">🎓</div>
+                <div class="hero-online-dot"></div>
+            </div>
+            <div class="hero-text">
+                <div class="hero-greeting" data-translate="welcome_back_scholar">Welcome back, Scholar</div>
+                <div class="hero-name">{{ user.name }}</div>
+                <div class="hero-sub">
+                    <span data-translate="grade">Grade</span> <strong>{{ user.grade }}</strong> &nbsp;·&nbsp; <span data-translate="kingdom_of_knowledge">Kingdom of Knowledge</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-actions">
+            <a href="/subjects" class="btn-hero-primary" data-translate="start_learning">
+                🚀 Start Learning
+            </a>
+            <a href="/logout" class="btn-hero-ghost" data-translate="logout">
+                🚪 Logout
+            </a>
+        </div>
+    </div>
+
+    <div class="hero-right">
+        <div class="xp-orb">
+            <div class="xp-orb-ring"></div>
+            <div class="xp-orb-num">{{ user.xp }}</div>
+            <div class="xp-orb-label" data-translate="xp">⚡ XP</div>
+        </div>
+        <div class="level-badge">
+            <div class="level-badge-pill"><span data-translate="level">👑 Level</span> {{ user.level }}</div>
+            <div class="level-badge-sub" data-translate="current_rank">Current Rank</div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     STATS GRID
+══════════════════════════════════ -->
+<div class="stats-grid">
+    <div class="stat-card stat-xp">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-num">{{ user.xp }}</div>
+        <div class="stat-lbl" data-translate="total_xp">Total XP</div>
+    </div>
+    <div class="stat-card stat-level">
+        <div class="stat-icon">👑</div>
+        <div class="stat-num">{{ user.level }}</div>
+        <div class="stat-lbl" data-translate="level">Level</div>
+    </div>
+    <div class="stat-card stat-grade">
+        <div class="stat-icon">📚</div>
+        <div class="stat-num">{{ user.grade }}</div>
+        <div class="stat-lbl" data-translate="grade">Grade</div>
+    </div>
+    <div class="stat-card stat-rank">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-num">#{{ rank }}</div>
+        <div class="stat-lbl" data-translate="rank">Rank</div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     XP PROGRESS TO NEXT LEVEL
+══════════════════════════════════ -->
+{% set xp_for_next = (user.level | int) * 500 %}
+{% set xp_this_lvl = (user.xp | int) - ((user.level | int) - 1) * 500 %}
+{% set raw_pct = (xp_this_lvl * 100) // 500 %}
+{% set xp_pct = raw_pct if raw_pct < 100 else 100 %}
+{% set xp_pct = xp_pct if xp_pct > 0 else 0 %}
+
+<div class="xp-progress-section">
+    <div class="xp-progress-header">
+        <span class="xp-progress-title" data-translate="xp_progress">⚡ XP Progress to Level {{ (user.level | int) + 1 }}</span>
+        <div class="xp-progress-vals">
+            <span class="xp-current">{{ user.xp }} <span data-translate="xp">XP</span></span>
+            <span class="xp-sep">/</span>
+            <span class="xp-next">{{ xp_for_next }} <span data-translate="xp_needed">XP needed</span></span>
+        </div>
+    </div>
+    <div class="xp-bar-track">
+        <div class="xp-bar-fill" style="--xp-width:{{ xp_pct }}%;"></div>
+        <div class="xp-bar-shine"></div>
+    </div>
+    <div class="xp-milestone-row">
+        <span><span data-translate="level">Level</span> {{ user.level }}</span>
+        <span>{{ xp_pct }}% <span data-translate="complete">complete</span></span>
+        <span><span data-translate="level">Level</span> {{ (user.level | int) + 1 }}</span>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     QUICK ACTIONS
+══════════════════════════════════ -->
+<div class="section-hdr">
+    <div class="section-hdr-line"></div>
+    <span class="section-hdr-label" data-translate="quick_actions">✦ Quick Actions ✦</span>
+    <div class="section-hdr-line"></div>
+</div>
+
+<div class="quick-actions">
+    <a href="/subjects" class="quick-card qc-gold">
+        <div class="quick-card-icon">🚀</div>
+        <div class="quick-card-body">
+            <div class="quick-card-title" data-translate="start_mission">Start a Mission</div>
+            <div class="quick-card-sub" data-translate="pick_subject">Pick a subject &amp; play</div>
+        </div>
+        <span class="quick-card-arrow">→</span>
+    </a>
+    <a href="/leaderboard" class="quick-card qc-pink">
+        <div class="quick-card-icon">🏆</div>
+        <div class="quick-card-body">
+            <div class="quick-card-title" data-translate="leaderboard">Leaderboard</div>
+            <div class="quick-card-sub" data-translate="see_kingdom_rank">See your kingdom rank</div>
+        </div>
+        <span class="quick-card-arrow">→</span>
+    </a>
+    <a href="/subjects" class="quick-card qc-blue">
+        <div class="quick-card-icon">📚</div>
+        <div class="quick-card-body">
+            <div class="quick-card-title" data-translate="all_subjects">All Subjects</div>
+            <div class="quick-card-sub"><span data-translate="browse_grade">Browse Grade</span> {{ user.grade }} <span data-translate="topics">topics</span></div>
+        </div>
+        <span class="quick-card-arrow">→</span>
+    </a>
+</div>
+
+<!-- ══════════════════════════════════
+     RECENT ACTIVITY
+══════════════════════════════════ -->
+<div class="section-hdr" style="animation: fadeUp 0.6s 0.5s both;">
+    <div class="section-hdr-line"></div>
+    <span class="section-hdr-label" data-translate="recent_activity">✦ Recent Activity ✦</span>
+    <div class="section-hdr-line"></div>
+</div>
+
+<div class="activity-list">
+    {% if recent %}
+        {% for session in recent %}
+        <div class="activity-row">
+            <div class="activity-dot" style="color:#00F5A0; background:#00F5A0;"></div>
+            <span class="activity-text"><span data-translate="completed">Completed</span> <strong>{{ session.subject }}</strong></span>
+            <span class="activity-xp">+{{ session.xp_earned }} <span data-translate="xp">XP</span></span>
+            <span class="activity-time">{{ session.played_at.strftime('%b %d') }}</span>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="activity-row">
+            <div class="activity-dot" style="color:#FFD700; background:#FFD700;"></div>
+            <span class="activity-text"><span data-translate="no_missions">No missions completed yet</span> — <strong data-translate="start_first_quest">start your first quest!</strong></span>
+            <span class="activity-xp">+0 <span data-translate="xp">XP</span></span>
+            <span class="activity-time">—</span>
+        </div>
+    {% endif %}
+</div>
+
+<!-- ══════════════════════════════════
+     MOTIVATIONAL QUOTE
+══════════════════════════════════ -->
+<div class="quote-card">
+    <div class="quote-text" data-translate="dr_seuss_quote">
+        The more that you read, the more things you will know. The more that you learn, the more places you'll go.
+    </div>
+    <div class="quote-author"><span data-translate="dr_seuss">— Dr. Seuss</span> &nbsp;·&nbsp; <span data-translate="daily_inspiration">Daily Inspiration</span></div>
+</div>
+
+<script>
+    // Add translation support for dynamic content
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.translationManager && window.translationManager.currentLang !== 'en') {
+            // Translate any dynamic text that might need translation
+            const activityTexts = [];
+            const activityElements = document.querySelectorAll('.activity-text');
+            
+            activityElements.forEach(el => {
+                activityTexts.push(el.textContent);
+            });
+            
+            if (activityTexts.length > 0) {
+                window.translationManager.translateGameTexts(activityTexts, window.translationManager.currentLang)
+                    .then(translations => {
+                        activityElements.forEach((el, idx) => {
+                            if (translations[idx]) {
+                                el.innerHTML = translations[idx];
+                            }
+                        });
+                    });
+            }
+        }
+    });
+</script>
+
+{% endblock %}
